@@ -1,119 +1,80 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FaHome,
   FaPhotoVideo,
   FaCog,
   FaUser,
-  FaSignOutAlt,
   FaArrowLeft,
+  FaCamera,
+  FaTimes
 } from "react-icons/fa";
 import { SignOutButton } from "@clerk/clerk-react";
+import FaceRecognition from "./FaceRecognition";
 
 export default function Sidebar({ isOpen }) {
+  const [showFaceRecognition, setShowFaceRecognition] = useState(false);
+
   return (
     <div
-  className={`bg-gray-900 text-gray-200 h-screen transition-all duration-300 ${
-    isOpen
-      ? `${window.innerWidth < 1024 ? "w-54 p-5 pt-8" : "w-64 p-5 pt-8"}`
-      : "w-0 p-0 overflow-hidden"
-  }`}
->
-
-      {isOpen && (
-        <ul className="space-y-6">
-          <li className="flex items-center gap-4 hover:bg-blue-100 hover:text-black rounded-md p-3 cursor-pointer transition">
-            <FaHome size={24} />
-            <span className="font-medium text-lg">Home</span>
+      className={`fixed h-screen bg-gray-800 text-gray-200 transition-all duration-300 z-20 shadow-2xl flex flex-col ${
+        isOpen
+          ? `${window.innerWidth < 1024 ? 'w-52' : 'w-64'}`
+          : 'w-0 overflow-hidden'
+      }`}
+    >
+      <div className="overflow-y-auto flex-1">
+        <ul className="space-y-2 p-4">
+          <li className="flex items-center gap-3 hover:bg-gray-700/50 rounded-lg p-3 cursor-pointer transition-colors duration-200">
+            <FaHome className="text-gray-300" size={20} />
+            <span className="font-medium text-gray-100">Home</span>
           </li>
 
-          <li className="flex items-center gap-4 hover:bg-blue-100 hover:text-black rounded-md p-3 cursor-pointer transition">
-            <FaPhotoVideo size={24} />
-            <span className="font-medium text-lg">Gallery</span>
+          <li className="flex items-center gap-3 hover:bg-gray-700/50 rounded-lg p-3 cursor-pointer transition-colors duration-200">
+            <FaPhotoVideo className="text-gray-300" size={20} />
+            <span className="font-medium text-gray-100">Gallery</span>
           </li>
 
-          <li className="flex items-center gap-4 hover:bg-blue-100 hover:text-black rounded-md p-3 cursor-pointer transition">
-            <FaCog size={24} />
-            <span className="font-medium text-lg">Settings</span>
+          <li className="flex items-center gap-3 hover:bg-gray-700/50 rounded-lg p-3 cursor-pointer transition-colors duration-200">
+            <FaCog className="text-gray-300" size={20} />
+            <span className="font-medium text-gray-100">Settings</span>
           </li>
 
-          <li className="flex items-center gap-4 hover:bg-blue-100 hover:text-black rounded-md p-3 cursor-pointer transition">
-            <FaUser size={24} />
-            <span className="font-medium text-lg">Profile</span>
+          <li className="flex items-center gap-3 hover:bg-gray-700/50 rounded-lg p-3 cursor-pointer transition-colors duration-200">
+            <FaUser className="text-gray-300" size={20} />
+            <span className="font-medium text-gray-100">Profile</span>
           </li>
 
-          {/* ✅ Logout Button (Smooth Clerk Integration) */}
-          <li className="flex items-center gap-4 hover:bg-red-400 hover:text-black rounded-md p-3 cursor-pointer transition">
-            <FaArrowLeft size={24} />
+          <li className="border-t border-gray-700 my-2"></li>
+
+          <li className="flex items-center gap-3 hover:bg-red-500/20 hover:text-red-400 rounded-lg p-3 cursor-pointer transition-colors duration-200 group">
             <SignOutButton redirectUrl="/">
-              <span className="font-medium text-lg">Logout</span>
+              <span className="font-medium text-red-400 group-hover:text-red-300">Logout</span>
             </SignOutButton>
           </li>
         </ul>
-      )}
+
+        {/* Face Recognition Section */}
+        <div className="mt-auto px-4 pb-4">
+          <button
+            onClick={() => setShowFaceRecognition(!showFaceRecognition)}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-md text-sm font-medium transition-colors mb-3"
+          >
+            {showFaceRecognition ? (
+              <>
+                <FaTimes className="text-red-400" />
+                <span>Hide Face Recognition</span>
+              </>
+            ) : (
+              <>
+                <FaCamera className="text-blue-400" />
+                <span>Face Recognition</span>
+              </>
+            )}
+          </button>
+          
+          {showFaceRecognition && <FaceRecognition />}
+        </div>
+      </div>
     </div>
   );
 }
-
-// import React, { useState } from "react";
-// import {
-//   FaHome,
-//   FaPhotoVideo,
-//   FaCog,
-//   FaUser,
-//   FaArrowLeft,
-// } from "react-icons/fa";
-// import { SignOutButton } from "@clerk/clerk-react";
-// import Loader from "./Loader.jsx"; // Ensure Loader component is imported
-
-// export default function Sidebar({ isOpen }) {
-//   const [loggingOut, setLoggingOut] = useState(false);
-
-//   return (
-//     <div
-//       className={`bg-gray-900 text-gray-200 h-screen transition-all duration-300 ${
-//         isOpen ? "w-64 p-5 pt-8" : "w-0 p-0 overflow-hidden"
-//       }`}
-//     >
-//       {loggingOut && (
-//         <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-50">
-//           <Loader />
-//         </div>
-//       )}
-
-//       {isOpen && (
-//         <ul className="space-y-6 relative z-10">
-//           <li className="flex items-center gap-4 hover:bg-blue-100 hover:text-black rounded-md p-3 cursor-pointer transition">
-//             <FaHome size={24} />
-//             <span className="font-medium text-lg">Home</span>
-//           </li>
-
-//           <li className="flex items-center gap-4 hover:bg-blue-100 hover:text-black rounded-md p-3 cursor-pointer transition">
-//             <FaPhotoVideo size={24} />
-//             <span className="font-medium text-lg">Gallery</span>
-//           </li>
-
-//           <li className="flex items-center gap-4 hover:bg-blue-100 hover:text-black rounded-md p-3 cursor-pointer transition">
-//             <FaCog size={24} />
-//             <span className="font-medium text-lg">Settings</span>
-//           </li>
-
-//           <li className="flex items-center gap-4 hover:bg-blue-100 hover:text-black rounded-md p-3 cursor-pointer transition">
-//             <FaUser size={24} />
-//             <span className="font-medium text-lg">Profile</span>
-//           </li>
-
-//           {/* ✅ Smooth Logout Button */}
-//           <li
-//             className="flex items-center gap-4 hover:bg-red-400 hover:text-black rounded-md p-3 cursor-pointer transition"
-//             onClick={() => setLoggingOut(true)}
-//           >
-//             <FaArrowLeft size={24} />
-//             <SignOutButton redirectUrl="/">
-//               <span className="font-medium text-lg">Logout</span>
-//             </SignOutButton>
-//           </li>
-//         </ul>
-//       )}
-//     </div>
-//   );
-// }
