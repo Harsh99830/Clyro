@@ -1,17 +1,68 @@
-import React, { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { Box, CircularProgress, Typography, IconButton } from "@mui/material";
+import { ChevronLeft, ChevronRight, Close } from "@mui/icons-material";
 import Navbar from "../components/Navbar.jsx";
 import Sidebar from "../components/Sidebar.jsx";
 
 export default function EventDetail({ sidebarOpen, toggleSidebar }) {
+  const { eventId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const { card } = location.state || {};
 
-  // Scroll to top on mount
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback((e) => {
+    if (selectedImageIndex === null) return;
+    
+    if (e.key === 'Escape') {
+      setSelectedImageIndex(null);
+      document.body.style.overflow = 'auto';
+    } else if (e.key === 'ArrowRight') {
+      setSelectedImageIndex((prev) => (prev + 1) % images.length);
+    } else if (e.key === 'ArrowLeft') {
+      setSelectedImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    }
+  }, [selectedImageIndex, images.length]);
+
+  // Add/remove event listener for keyboard navigation
   useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  // Fetch images when component mounts
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`http://localhost:5000/api/images?folder=${eventId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch images');
+        }
+        const data = await response.json();
+        if (data.success) {
+          setImages(data.images);
+        }
+      } catch (err) {
+        console.error('Error fetching images:', err);
+        setError('Failed to load images. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (eventId) {
+      fetchImages();
+    }
+    
+    // Scroll to top on mount
     window.scrollTo(0, 0);
-  }, []);
+  }, [eventId]);
 
   // Scroll lock for mobile/small screens
   useEffect(() => {
@@ -26,8 +77,50 @@ export default function EventDetail({ sidebarOpen, toggleSidebar }) {
     };
   }, [sidebarOpen]);
 
-  if (!card) {
-    return <p className="text-center mt-20">No Event Selected</p>;
+  if (!card && !eventId) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <Typography variant="h6" color="textSecondary">
+          No event selected. Please go back and select an event.
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Move the loading check after all hooks
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+
+  const openImage = (index) => {
+    setSelectedImageIndex(index);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeImage = () => {
+    setSelectedImageIndex(null);
+    document.body.style.overflow = 'auto';
+  };
+
+  const navigateImage = (direction) => {
+    if (direction === 'next') {
+      setSelectedImageIndex((prev) => (prev + 1) % images.length);
+    } else {
+      setSelectedImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    }
+  };
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <Typography color="error">{error}</Typography>
+      </Box>
+    );
   }
 
   return (
@@ -72,28 +165,94 @@ export default function EventDetail({ sidebarOpen, toggleSidebar }) {
 
           <div className="rounded-xl shadow-sm p-6 md:p-8 mb-8 ">
             <h1 className="text-3xl font-bold text-white text-center mb-8 tracking-tight">
-              {card.name}
+              {card?.name || eventId}
             </h1>
 
-            {/* Photo Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5,6,7,8,9,10].map((i) => (
-                <div
-                  key={i}
-                  className="group relative w-full h-56 bg-gray-700/50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-700/50"
-                >
-                  <img
-                    src={card.image}
-                    alt={`${card.name}-${i}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
-                </div>
-              ))}
-            </div>
+            {images.length === 0 ? (
+              <Box textAlign="center" py={8}>
+                <Typography variant="h6" color="textSecondary">
+                  No images found for this event.
+                </Typography>
+              </Box>
+            ) : (
+              <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 px-4">
+                {images.map((image, index) => (
+                  <div
+                    key={index}
+                    className="group relative mb-6 break-inside-avoid bg-gray-700/50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-700/50 cursor-pointer"
+                    onClick={() => window.open(image.url, '_blank', 'noopener,noreferrer')}
+                  >
+                    <div className="relative w-full h-full">
+                      <img
+                        src={image.url}
+                        alt={`${card?.name || 'Event'} - ${index + 1}`}
+                        className="w-full h-auto max-w-full block group-hover:scale-105 transition-transform duration-300 cursor-zoom-in"
+                        loading="lazy"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openImage(index);
+                        }}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://via.placeholder.com/400?text=Image+Not+Available';
+                        }}
+                        style={{ maxHeight: '80vh' }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Image Overlay */}
+      {selectedImageIndex !== null && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <IconButton
+            onClick={closeImage}
+            className="absolute top-4 right-4 text-white hover:bg-white/10"
+            size="large"
+          >
+            <Close />
+          </IconButton>
+          
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              navigateImage('prev');
+            }}
+            className="absolute left-4 text-white hover:bg-white/10"
+            size="large"
+          >
+            <ChevronLeft style={{ fontSize: '2.5rem' }} />
+          </IconButton>
+          
+          <div className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center">
+            <img
+              src={images[selectedImageIndex]?.url}
+              alt={`${card?.name || 'Event'} - ${selectedImageIndex + 1}`}
+              className="max-w-full max-h-[90vh] object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-1 rounded-full text-sm">
+              {selectedImageIndex + 1} / {images.length}
+            </div>
+          </div>
+          
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              navigateImage('next');
+            }}
+            className="absolute right-4 text-white hover:bg-white/10"
+            size="large"
+          >
+            <ChevronRight style={{ fontSize: '2.5rem' }} />
+          </IconButton>
+        </div>
+      )}
     </div>
   );
 }
