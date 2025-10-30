@@ -12,7 +12,7 @@ const FolderGrid = ({ onCardClick }) => {
     const fetchFolders = async () => {
       try {
         // Fetch folders
-        const response = await fetch('http://localhost:5000/api/folders');
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/folders`);
         const data = await response.json();
         
         if (data.success) {
@@ -22,7 +22,7 @@ const FolderGrid = ({ onCardClick }) => {
           const images = {};
           for (const folder of data.folders) {
             try {
-              const imgResponse = await fetch(`http://localhost:5000/api/images?folder=${encodeURIComponent(folder.name)}&limit=1`);
+              const imgResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/images?folder=${encodeURIComponent(folder.name)}&limit=1`);
               const imgData = await imgResponse.json();
               
               if (imgData.success && imgData.images.length > 0) {

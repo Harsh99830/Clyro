@@ -40,7 +40,7 @@ export default function EventDetail({ sidebarOpen, toggleSidebar }) {
     const fetchImages = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:5000/api/images?folder=${eventId}`);
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/images?folder=${eventId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch images');
         }
