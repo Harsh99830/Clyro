@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 import multerS3 from "multer-s3";
-import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { S3Client, ListObjectsV2Command, CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
 import cors from "cors";
 
@@ -124,6 +124,126 @@ app.get("/api/folders", async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to list folders',
+      details: error.message
+    });
+  }
+});
+
+// Route to update a folder name
+app.put('/api/folders/:id', async (req, res) => {
+  try {
+    const { id: oldFolderName } = req.params;
+    const { name: newFolderName } = req.body;
+
+    if (!oldFolderName || !newFolderName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Both old folder name and new folder name are required'
+      });
+    }
+
+    // List all objects with the old folder prefix
+    const listCommand = new ListObjectsV2Command({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Prefix: oldFolderName.endsWith('/') ? oldFolderName : `${oldFolderName}/`,
+    });
+
+    const { Contents } = await s3.send(listCommand);
+
+    if (!Contents || Contents.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Folder not found'
+      });
+    }
+
+    // Copy each file to the new location and delete the old one
+    for (const item of Contents) {
+      const oldKey = item.Key;
+      const newKey = oldKey.replace(
+        oldFolderName.endsWith('/') ? oldFolderName : `${oldFolderName}/`,
+        newFolderName.endsWith('/') ? newFolderName : `${newFolderName}/`
+      );
+
+      // Copy the object to the new location
+      await s3.send(new CopyObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        CopySource: `/${process.env.R2_BUCKET_NAME}/${oldKey}`,
+        Key: newKey,
+        ACL: 'public-read'
+      }));
+
+      // Delete the old object
+      await s3.send(new DeleteObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: oldKey
+      }));
+    }
+
+    res.json({
+      success: true,
+      message: 'Folder renamed successfully',
+      oldName: oldFolderName,
+      newName: newFolderName
+    });
+  } catch (error) {
+    console.error('Error renaming folder:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to rename folder',
+      details: error.message
+    });
+  }
+});
+
+// Route to delete a folder and all its contents
+app.delete('/api/folders/:id', async (req, res) => {
+  try {
+    const { id: folderName } = req.params;
+
+    if (!folderName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Folder name is required'
+      });
+    }
+
+    // List all objects with the folder prefix
+    const listCommand = new ListObjectsV2Command({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Prefix: folderName.endsWith('/') ? folderName : `${folderName}/`,
+    });
+
+    const { Contents } = await s3.send(listCommand);
+
+    if (!Contents || Contents.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Folder not found or is empty'
+      });
+    }
+
+    // Delete all objects in the folder
+    const deletePromises = Contents.map(item => 
+      s3.send(new DeleteObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: item.Key
+      }))
+    );
+
+    await Promise.all(deletePromises);
+
+    res.json({
+      success: true,
+      message: 'Folder and all its contents deleted successfully',
+      folder: folderName,
+      deletedItems: Contents.length
+    });
+  } catch (error) {
+    console.error('Error deleting folder:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete folder',
       details: error.message
     });
   }

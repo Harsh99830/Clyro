@@ -6,13 +6,28 @@ import {
   FaUser,
   FaArrowLeft,
   FaCamera,
-  FaTimes
+  FaTimes,
+  FaSpinner
 } from "react-icons/fa";
-import { SignOutButton } from "@clerk/clerk-react";
+import { SignOutButton, useClerk } from "@clerk/clerk-react";
 import FaceRecognition from "./FaceRecognition";
 
 export default function Sidebar({ isOpen }) {
   const [showFaceRecognition, setShowFaceRecognition] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { signOut } = useClerk();
+
+  const handleSignOut = async (e) => {
+    e.preventDefault();
+    try {
+      setIsLoggingOut(true);
+      await signOut();
+      // The redirect will happen automatically due to the SignOutButton
+    } catch (error) {
+      console.error('Error during sign out:', error);
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <div
@@ -46,9 +61,25 @@ export default function Sidebar({ isOpen }) {
 
           <li className="border-t border-gray-700 my-2"></li>
 
-          <li className="flex items-center gap-3 hover:bg-red-500/20 hover:text-red-400 rounded-lg p-3 cursor-pointer transition-colors duration-200 group">
+          <li 
+            className={`flex items-center gap-3 rounded-lg p-3 transition-colors duration-200 group ${
+              isLoggingOut 
+                ? 'opacity-70 cursor-not-allowed' 
+                : 'hover:bg-red-500/20 hover:text-red-400 cursor-pointer'
+            }`}
+            onClick={!isLoggingOut ? handleSignOut : undefined}
+          >
             <SignOutButton redirectUrl="/">
-              <span className="font-medium text-red-400 group-hover:text-red-300">Logout</span>
+              <div className="flex items-center gap-2">
+                {isLoggingOut ? (
+                  <>
+                    <FaSpinner className="animate-spin text-red-400" size={16} />
+                    <span className="font-medium text-red-400">Logging out...</span>
+                  </>
+                ) : (
+                  <span className="font-medium text-red-400 group-hover:text-red-300">Logout</span>
+                )}
+              </div>
             </SignOutButton>
           </li>
         </ul>

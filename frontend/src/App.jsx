@@ -6,41 +6,15 @@ import EventDetail from "./pages/EventDetail.jsx";
 import AdminSignIn from "./Admin/AdminSignIn.jsx";
 import AdminHome from "./Admin/Home.jsx";
 import AdminProtectedRoute from "./Admin/AdminProtectedRoute.jsx";
+import FolderView from "./Admin/FolderView.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Admin Layout Component
+// Admin Layout Component - Simplified as we moved the header to Admin/Home.jsx
 const AdminLayout = () => {
-  const { signOut } = useAuth();
-  
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
   return (
     <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <button
-                onClick={handleSignOut}
-                className="ml-4 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
       <main>
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
     </div>
   );
@@ -108,7 +82,7 @@ function App() {
             }>
               <Route index element={<Navigate to="/admin/home" replace />} />
               <Route path="home" element={<AdminHome />} />
-              {/* Add more admin routes here */}
+              <Route path=":folderName" element={<FolderView />} />
             </Route>
 
             {/* Regular User Routes */}
