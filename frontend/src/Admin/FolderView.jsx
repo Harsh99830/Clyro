@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, IconButton, Typography, CircularProgress } from '@mui/material';
-import { ChevronLeft, ChevronRight, Close } from '@mui/icons-material';
+import { Box, IconButton, Typography, CircularProgress, Button, Checkbox } from '@mui/material';
+import { ChevronLeft, ChevronRight, Close, SelectAll, Delete, Download } from '@mui/icons-material';
 
 const FolderView = () => {
   const { folderName } = useParams();
@@ -10,6 +10,8 @@ const FolderView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedImages, setSelectedImages] = useState(new Set());
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -83,8 +85,94 @@ const FolderView = () => {
   }, [handleKeyDown]);
 
   const openImage = (index) => {
-    setSelectedImageIndex(index);
-    document.body.style.overflow = 'hidden';
+    if (selectionMode) {
+      toggleImageSelection(index);
+    } else {
+      setSelectedImageIndex(index);
+    }
+  };
+
+  const toggleImageSelection = (index) => {
+    setSelectedImages(prev => {
+      const newSelection = new Set(prev);
+      if (newSelection.has(index)) {
+        newSelection.delete(index);
+      } else {
+        newSelection.add(index);
+      }
+      return newSelection;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedImages.size === images.length) {
+      setSelectedImages(new Set());
+    } else {
+      setSelectedImages(new Set(Array.from({ length: images.length }, (_, i) => i)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedImages.size === 0) return;
+    
+    if (!window.confirm(`Are you sure you want to delete ${selectedImages.size} selected image(s)?`)) {
+      return;
+    }
+
+    try {
+      // Create an array of delete promises
+      const deletePromises = Array.from(selectedImages).map(async (index) => {
+        const image = images[index];
+        const imageKey = image.Key || image.name;
+        
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/images`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            key: imageKey,
+            folder: folderName
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to delete image');
+        }
+        
+        return index; // Return the index of the successfully deleted image
+      });
+
+      // Wait for all delete operations to complete
+      const deletedIndices = await Promise.all(deletePromises);
+      
+      // Update the UI by removing the deleted images
+      setImages(prevImages => 
+        prevImages.filter((_, index) => !selectedImages.has(index))
+      );
+      
+      // Show success message
+      toast.success(`Successfully deleted ${deletedIndices.length} image(s)`);
+      
+    } catch (error) {
+      console.error('Error deleting images:', error);
+      toast.error(error.message || 'Failed to delete images');
+    } finally {
+      // Reset selection mode
+      setSelectionMode(false);
+      setSelectedImages(new Set());
+    }
+  };
+
+  const handleDownloadSelected = () => {
+    // Add your download logic here
+    console.log('Downloading selected images:', Array.from(selectedImages).map(i => images[i]));
+  };
+
+  const handleCancelSelection = () => {
+    setSelectionMode(false);
+    setSelectedImages(new Set());
   };
 
   const closeImage = () => {
@@ -126,26 +214,69 @@ const FolderView = () => {
 
       <div className="pt-16 relative z-10">
         <div className="p-4 md:p-8 max-w-7xl mx-auto">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors group"
-          >
-            <svg
-              className="w-5 h-5 text-white transform group-hover:-translate-x-1 transition-transform"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
+          <div className="flex justify-between items-center mb-6">
+            <button
+              onClick={() => selectionMode ? handleCancelSelection() : navigate(-1)}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            <span className="font-medium text-white">Back to Folders</span>
-          </button>
+              <svg
+                className="w-5 h-5 text-white transform group-hover:-translate-x-1 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              <span className="font-medium text-white">
+                {selectionMode ? 'Cancel' : 'Back to Folders'}
+              </span>
+            </button>
+            
+            <div className="flex items-center gap-2">
+              {selectionMode ? (
+                <>
+                  <span className="text-white mr-4">
+                    {selectedImages.size} selected
+                  </span>
+                  <button
+                    onClick={toggleSelectAll}
+                    className="flex items-center gap-1 px-3 py-1.5 text-white border border-gray-600 hover:bg-gray-700 rounded-md transition-colors text-sm"
+                  >
+                    {selectedImages.size === images.length ? 'Deselect All' : 'Select All'}
+                  </button>
+                  <button
+                    onClick={handleDeleteSelected}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors text-sm"
+                    title="Delete selected"
+                  >
+                    <Delete fontSize="small" />
+                    <span>Delete</span>
+                  </button>
+                  <button
+                    onClick={handleCancelSelection}
+                    className="ml-2 text-gray-300 hover:text-white"
+                    title="Cancel selection"
+                  >
+                    <Close fontSize="small" />
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setSelectionMode(true)}
+                  className="flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors"
+                >
+                  <SelectAll />
+                  <span>Select</span>
+                </button>
+              )}
+            </div>
+          </div>
 
           <div className="rounded-xl shadow-sm p-6 md:p-8 mb-8">
             <h1 className="text-3xl font-bold text-white text-center mb-8 tracking-tight">
@@ -170,22 +301,51 @@ const FolderView = () => {
                       className="group relative mb-6 break-inside-avoid bg-gray-700/50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-700/50 cursor-pointer"
                     >
                       <div className="relative w-full h-full">
+                        {selectionMode && (
+                          <div className="absolute top-2 left-2 z-10">
+                            <Checkbox
+                              checked={selectedImages.has(index)}
+                              onChange={() => toggleImageSelection(index)}
+                              onClick={(e) => e.stopPropagation()}
+                              sx={{
+                                color: 'white',
+                                '&.Mui-checked': {
+                                  color: '#3b82f6',
+                                },
+                                padding: '4px',
+                                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                borderRadius: '4px',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                },
+                              }}
+                            />
+                          </div>
+                        )}
                         {imageUrl ? (
-                          <img
-                            src={imageUrl}
-                            alt={imageName}
-                            className="w-full h-auto max-w-full block group-hover:scale-105 transition-transform duration-300 cursor-zoom-in"
-                            loading="lazy"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openImage(index);
-                            }}
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = 'https://via.placeholder.com/400?text=Image+Not+Available';
-                            }}
-                            style={{ maxHeight: '80vh' }}
-                          />
+                          <div className={`transition-opacity ${selectedImages.has(index) ? 'opacity-70' : 'opacity-100'}`}>
+                            <img
+                              src={imageUrl}
+                              alt={imageName}
+                              className={`w-full h-auto max-w-full block group-hover:scale-105 transition-all duration-300 ${
+                                selectionMode ? 'cursor-pointer' : 'cursor-zoom-in'
+                              }`}
+                              loading="lazy"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openImage(index);
+                              }}
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = 'https://via.placeholder.com/400?text=Image+Not+Available';
+                              }}
+                              style={{
+                                maxHeight: '80vh',
+                                border: selectedImages.has(index) ? '2px solid #3b82f6' : 'none',
+                                borderRadius: selectedImages.has(index) ? '4px' : '0'
+                              }}
+                            />
+                          </div>
                         ) : (
                           <div className="w-full h-64 bg-gray-700/50 flex items-center justify-center">
                             <span className="text-gray-400">No preview available</span>

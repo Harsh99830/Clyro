@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 import multerS3 from "multer-s3";
-import { S3Client, ListObjectsV2Command, CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, ListObjectsV2Command, CopyObjectCommand, DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
 import cors from "cors";
 
@@ -246,6 +246,93 @@ app.delete('/api/folders/:id', async (req, res) => {
       error: 'Failed to delete folder',
       details: error.message
     });
+  }
+});
+
+// Route to create a new folder
+app.post('/api/folders', async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Folder name is required and must be a non-empty string' 
+      });
+    }
+
+    // Sanitize folder name
+    const sanitizedName = name
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    // Check if folder already exists in R2
+    const listParams = {
+      Bucket: process.env.R2_BUCKET_NAME,
+      Prefix: `${sanitizedName}/`,
+      MaxKeys: 1
+    };
+
+    const objects = await s3.send(new ListObjectsV2Command(listParams));
+    
+    if (objects.Contents && objects.Contents.length > 0) {
+      return res.status(409).json({
+        success: false,
+        error: 'A folder with this name already exists'
+      });
+    }
+
+    // Create a placeholder file to represent the folder in R2
+    const params = {
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: `${sanitizedName}/.keep`,  // Hidden file to represent the folder
+      Body: '',
+      ContentType: 'application/x-www-form-urlencoded'
+    };
+
+    await s3.send(new PutObjectCommand(params));
+
+    res.status(201).json({
+      success: true,
+      message: 'Folder created successfully',
+      data: {
+        name: sanitizedName,
+        path: `${sanitizedName}/`
+      }
+    });
+  } catch (error) {
+    console.error('Error creating folder:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create folder',
+      details: error.message
+    });
+  }
+});
+
+// Route to delete an image
+app.delete("/api/images", async (req, res) => {
+  try {
+    const { key, folder } = req.body;
+    
+    if (!key || !folder) {
+      return res.status(400).json({ error: 'Missing required fields: key and folder are required' });
+    }
+
+    // Delete from R2
+    const deleteParams = {
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: `${folder}/${key}`,
+    };
+
+    await s3.send(new DeleteObjectCommand(deleteParams));
+    
+    res.status(200).json({ message: 'Image deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    res.status(500).json({ error: 'Failed to delete image', details: error.message });
   }
 });
 
