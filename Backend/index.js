@@ -77,24 +77,55 @@ async function testR2Connection() {
 // Test the connection when the server starts
 testR2Connection();
 
-// Multer storage config
-const upload = multer({
-  storage: multerS3({
-    s3: s3,
-    bucket: process.env.R2_BUCKET_NAME,
-    acl: "public-read",
-    key: function (req, file, cb) {
-      cb(null, `uploads/${Date.now()}-${file.originalname}`);
-    },
-  }),
-});
+// Multer memory storage for handling file in memory before uploading to R2
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-// Route to upload file
-app.post("/upload", upload.single("file"), (req, res) => {
-  res.json({
-    message: "File uploaded successfully!",
-    fileUrl: req.file.location,
-  });
+// Route to upload file to a specific folder
+app.post("/upload", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const folder = req.body.folder || 'uploads';
+    const fileName = `${Date.now()}-${req.file.originalname}`;
+    const key = folder ? `${folder}/${fileName}` : fileName;
+
+    const params = {
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: key,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+      ACL: 'public-read'
+    };
+
+    // Upload to R2
+    const command = new PutObjectCommand(params);
+    await s3.send(command);
+
+    // Construct the public URL
+    const fileUrl = `https://${process.env.R2_PUBLIC_DOMAIN || `${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com`}/${key}`;
+
+    res.status(201).json({
+      success: true,
+      message: 'File uploaded successfully',
+      data: {
+        name: fileName,
+        url: fileUrl,
+        key: key,
+        size: req.file.size,
+        type: req.file.mimetype
+      }
+    });
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to upload file',
+      details: error.message
+    });
+  }
 });
 
 // Route to list all folders in the bucket

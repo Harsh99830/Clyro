@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, IconButton, Typography, CircularProgress, Button, Checkbox } from '@mui/material';
 import { ChevronLeft, ChevronRight, Close, SelectAll, Delete, Download } from '@mui/icons-material';
+import UploadButton from '../components/UploadButton';
 
 const FolderView = () => {
   const { folderName } = useParams();
@@ -12,42 +13,44 @@ const FolderView = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedImages, setSelectedImages] = useState(new Set());
+  const [isUploading, setIsUploading] = useState(false);
+
+  const fetchImages = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/images?folder=${encodeURIComponent(folderName)}`
+      );
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch images');
+      }
+      
+      // Ensure we have a valid array of images
+      const validImages = Array.isArray(data.images) 
+        ? data.images.filter(img => img && (img.Key || img.url))
+        : [];
+        
+      setImages(validImages);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching images:', err);
+      setError(err.message || 'Failed to load images');
+      setImages([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [folderName]);
 
   useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/images?folder=${encodeURIComponent(folderName)}`
-        );
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch images');
-        }
-        
-        // Ensure we have a valid array of images
-        const validImages = Array.isArray(data.images) 
-          ? data.images.filter(img => img && (img.Key || img.url))
-          : [];
-          
-        setImages(validImages);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching images:', err);
-        setError(err.message || 'Failed to load images');
-        setImages([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (folderName) {
       fetchImages();
     } else {
       setLoading(false);
       setError('No folder specified');
     }
-  }, [folderName]);
+  }, [folderName, fetchImages]);
 
   // Helper function to safely get the image name
   const getImageName = (image) => {
@@ -175,6 +178,11 @@ const FolderView = () => {
     setSelectedImages(new Set());
   };
 
+  const handleUploadSuccess = () => {
+    // Refresh the images list after successful upload
+    fetchImages();
+  };
+
   const closeImage = () => {
     setSelectedImageIndex(null);
     document.body.style.overflow = 'auto';
@@ -267,13 +275,19 @@ const FolderView = () => {
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={() => setSelectionMode(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors"
-                >
-                  <SelectAll />
-                  <span>Select</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setSelectionMode(true)}
+                    className="flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors border border-gray-600 hover:bg-gray-700"
+                  >
+                    <SelectAll />
+                    <span>Select</span>
+                  </button>
+                  <UploadButton 
+                    folderName={folderName}
+                    onUploadSuccess={handleUploadSuccess}
+                  />
+                </div>
               )}
             </div>
           </div>
