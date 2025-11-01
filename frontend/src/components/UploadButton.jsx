@@ -8,10 +8,12 @@ import {
   ListItemText,
   CircularProgress
 } from '@mui/material';
+import GoogleDriveUpload from './GoogleDriveUpload';
 
 const UploadButton = ({ folderName, onUploadSuccess }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showDriveDialog, setShowDriveDialog] = useState(false);
   const fileInputRef = useRef(null);
   const isMenuOpen = Boolean(anchorEl);
 
@@ -29,9 +31,15 @@ const UploadButton = ({ folderName, onUploadSuccess }) => {
   };
 
   const handleGoogleDriveUpload = () => {
-    // TODO: Implement Google Drive Picker integration
-    console.log('Google Drive upload clicked');
     handleClose();
+    setShowDriveDialog(true);
+  };
+
+  const handleDriveUploadSuccess = (data) => {
+    if (onUploadSuccess) {
+      onUploadSuccess(data);
+    }
+    setShowDriveDialog(false);
   };
 
   const handleFileChange = async (event) => {
@@ -110,13 +118,19 @@ const UploadButton = ({ folderName, onUploadSuccess }) => {
         </MenuItem>
       </Menu>
 
+      <GoogleDriveUpload
+        open={showDriveDialog}
+        onClose={() => setShowDriveDialog(false)}
+        onUpload={handleDriveUploadSuccess}
+        folderName={folderName}
+      />
+
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        className="hidden"
+        style={{ display: 'none' }}
         multiple
-        accept="image/*"
       />
     </>
   );
