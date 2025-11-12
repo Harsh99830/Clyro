@@ -42,6 +42,27 @@ app.use((req, res, next) => {
   next();
 });
 
+// Debugging middleware: log origin, url, status and content-type after response finishes.
+// This helps diagnose CORB issues by showing when the server returns HTML (or missing JSON headers).
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '-';
+  res.on('finish', () => {
+    const ct = res.getHeader('content-type') || '-';
+    console.log(`[CORS DEBUG] ${new Date().toISOString()} ${req.method} ${req.originalUrl} status=${res.statusCode} origin=${origin} content-type=${ct}`);
+  });
+  next();
+});
+
+// Ensure API routes have a JSON content-type by default if none is set. This won't change
+// the body (useful when a proxy returns HTML error pages — those will still be HTML and
+// show up in logs which helps debugging CORB). Do not force JSON for non-API routes.
+app.use('/api', (req, res, next) => {
+  if (!res.getHeader('content-type')) {
+    res.setHeader('Content-Type', 'application/json');
+  }
+  next();
+});
+
 // Parse JSON bodies
 app.use(express.json());
 
