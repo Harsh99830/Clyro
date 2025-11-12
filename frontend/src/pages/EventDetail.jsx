@@ -102,6 +102,14 @@ export default function EventDetail({ sidebarOpen, toggleSidebar }) {
     document.body.style.overflow = 'hidden';
   };
 
+  // Helper to check if media is a video
+  const isVideo = (image) => {
+    const url = image?.url || '';
+    if (!url) return false;
+    if (image?.mime && typeof image.mime === 'string' && image.mime.startsWith('video')) return true;
+    return /\.(mp4|webm|ogg)(\?|$)/i.test(url);
+  };
+
   const closeImage = () => {
     setSelectedImageIndex(null);
     document.body.style.overflow = 'auto';
@@ -176,31 +184,67 @@ export default function EventDetail({ sidebarOpen, toggleSidebar }) {
               </Box>
             ) : (
               <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 px-4">
-                {images.map((image, index) => (
-                  <div
-                    key={index}
-                    className="group relative mb-6 break-inside-avoid bg-gray-700/50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-700/50 cursor-pointer"
-                    onClick={() => window.open(image.url, '_blank', 'noopener,noreferrer')}
-                  >
-                    <div className="relative w-full h-full">
-                      <img
-                        src={image.url}
-                        alt={`${card?.name || 'Event'} - ${index + 1}`}
-                        className="w-full h-auto max-w-full block group-hover:scale-105 transition-transform duration-300 cursor-zoom-in"
-                        loading="lazy"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openImage(index);
-                        }}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'https://via.placeholder.com/400?text=Image+Not+Available';
-                        }}
-                        style={{ maxHeight: '80vh' }}
-                      />
+                {images.map((image, index) => {
+                  const mediaIsVideo = isVideo(image);
+
+                  return (
+                    <div
+                      key={index}
+                      className="group relative mb-6 break-inside-avoid bg-gray-700/50 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-700/50 cursor-pointer"
+                      onClick={() => window.open(image.url, '_blank', 'noopener,noreferrer')}
+                    >
+                      <div className="relative w-full h-full">
+                        {mediaIsVideo ? (
+                          <div className="relative">
+                            <video
+                              src={image.url}
+                              className="w-full h-auto max-w-full block group-hover:scale-105 transition-transform duration-300 cursor-zoom-in"
+                              loading="lazy"
+                              muted
+                              playsInline
+                              preload="metadata"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openImage(index);
+                              }}
+                              onError={(e) => {
+                                const parent = e.target.parentNode;
+                                if (parent) {
+                                  parent.innerHTML = '<img src="https://via.placeholder.com/400?text=Media+Not+Available" alt="Unavailable" class="w-full h-auto" />';
+                                }
+                              }}
+                              style={{ maxHeight: '80vh' }}
+                            />
+
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <div className="bg-black/50 rounded-full p-3">
+                                <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                  <path d="M8 5v14l11-7z" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <img
+                            src={image.url}
+                            alt={`${card?.name || 'Event'} - ${index + 1}`}
+                            className="w-full h-auto max-w-full block group-hover:scale-105 transition-transform duration-300 cursor-zoom-in"
+                            loading="lazy"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openImage(index);
+                            }}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://via.placeholder.com/400?text=Image+Not+Available';
+                            }}
+                            style={{ maxHeight: '80vh' }}
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -230,12 +274,22 @@ export default function EventDetail({ sidebarOpen, toggleSidebar }) {
           </IconButton>
           
           <div className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center">
-            <img
-              src={images[selectedImageIndex]?.url}
-              alt={`${card?.name || 'Event'} - ${selectedImageIndex + 1}`}
-              className="max-w-full max-h-[90vh] object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
+            {isVideo(images[selectedImageIndex]) ? (
+              <video
+                src={images[selectedImageIndex]?.url}
+                controls
+                autoPlay
+                className="max-w-full max-h-[90vh] object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <img
+                src={images[selectedImageIndex]?.url}
+                alt={`${card?.name || 'Event'} - ${selectedImageIndex + 1}`}
+                className="max-w-full max-h-[90vh] object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-1 rounded-full text-sm">
               {selectedImageIndex + 1} / {images.length}
             </div>

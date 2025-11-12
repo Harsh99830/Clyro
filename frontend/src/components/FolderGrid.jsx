@@ -172,7 +172,7 @@ const FolderGrid = ({ onCardClick, isAdmin = false }) => {
   return (
     <>
     <Container maxWidth="lg" sx={{ py: 8, px: { xs: 2, sm: 3, md: 4 } }}>
-      <Grid container spacing={4}>
+      <Grid container spacing={10}>
         {folders.map((folder, index) => (
           <Grid item key={folder.path} xs={12} sm={6} md={4} lg={3}>
             <Card

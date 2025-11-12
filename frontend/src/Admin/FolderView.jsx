@@ -68,6 +68,14 @@ const FolderView = () => {
     return '';
   };
 
+  // Helper to check if media is a video
+  const isVideo = (image) => {
+    const url = getImageUrl(image) || '';
+    if (!url) return false;
+    if (image.mime && typeof image.mime === 'string' && image.mime.startsWith('video')) return true;
+    return /\.(mp4|webm|ogg)(\?|$)/i.test(url);
+  };
+
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e) => {
     if (selectedImageIndex === null) return;
@@ -308,7 +316,8 @@ const FolderView = () => {
                 {images.map((image, index) => {
                   const imageUrl = getImageUrl(image);
                   const imageName = getImageName(image);
-                  
+                  const mediaIsVideo = isVideo(image);
+
                   return (
                     <div
                       key={image.Key || image.url || index}
@@ -338,27 +347,67 @@ const FolderView = () => {
                         )}
                         {imageUrl ? (
                           <div className={`transition-opacity ${selectedImages.has(index) ? 'opacity-70' : 'opacity-100'}`}>
-                            <img
-                              src={imageUrl}
-                              alt={imageName}
-                              className={`w-full h-auto max-w-full block group-hover:scale-105 transition-all duration-300 ${
-                                selectionMode ? 'cursor-pointer' : 'cursor-zoom-in'
-                              }`}
-                              loading="lazy"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openImage(index);
-                              }}
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = 'https://via.placeholder.com/400?text=Image+Not+Available';
-                              }}
-                              style={{
-                                maxHeight: '80vh',
-                                border: selectedImages.has(index) ? '2px solid #3b82f6' : 'none',
-                                borderRadius: selectedImages.has(index) ? '4px' : '0'
-                              }}
-                            />
+                            {mediaIsVideo ? (
+                              <div className="relative">
+                                <video
+                                  src={imageUrl}
+                                  className={`w-full h-auto max-w-full block group-hover:scale-105 transition-all duration-300 ${
+                                    selectionMode ? 'cursor-pointer' : 'cursor-zoom-in'
+                                  }`}
+                                  loading="lazy"
+                                  muted
+                                  playsInline
+                                  preload="metadata"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openImage(index);
+                                  }}
+                                  onError={(e) => {
+                                    // replace video with placeholder image element
+                                    const parent = e.target.parentNode;
+                                    if (parent) {
+                                      parent.innerHTML = '<img src="https://via.placeholder.com/400?text=Media+Not+Available" alt="Unavailable" class="w-full h-auto" />';
+                                    }
+                                  }}
+                                  style={{
+                                    maxHeight: '80vh',
+                                    border: selectedImages.has(index) ? '2px solid #3b82f6' : 'none',
+                                    borderRadius: selectedImages.has(index) ? '4px' : '0'
+                                  }}
+                                />
+
+                                {/* Play icon overlay — centered, non-interactive so clicks go to the video */}
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                  <div className="bg-black/50 rounded-full p-3">
+                                    <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                      <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <img
+                                src={imageUrl}
+                                alt={imageName}
+                                className={`w-full h-auto max-w-full block group-hover:scale-105 transition-all duration-300 ${
+                                  selectionMode ? 'cursor-pointer' : 'cursor-zoom-in'
+                                }`}
+                                loading="lazy"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openImage(index);
+                                }}
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = 'https://via.placeholder.com/400?text=Image+Not+Available';
+                                }}
+                                style={{
+                                  maxHeight: '80vh',
+                                  border: selectedImages.has(index) ? '2px solid #3b82f6' : 'none',
+                                  borderRadius: selectedImages.has(index) ? '4px' : '0'
+                                }}
+                              />
+                            )}
                           </div>
                         ) : (
                           <div className="w-full h-64 bg-gray-700/50 flex items-center justify-center">
@@ -397,11 +446,20 @@ const FolderView = () => {
           </button>
           
           <div className="max-w-4xl w-full max-h-[90vh] flex items-center justify-center">
-            <img
-              src={getImageUrl(images[selectedImageIndex])}
-              alt={`${selectedImageIndex + 1} of ${images.length}`}
-              className="max-h-[80vh] max-w-full object-contain"
-            />
+            {isVideo(images[selectedImageIndex]) ? (
+              <video
+                src={getImageUrl(images[selectedImageIndex])}
+                controls
+                autoPlay
+                className="max-h-[80vh] max-w-full object-contain"
+              />
+            ) : (
+              <img
+                src={getImageUrl(images[selectedImageIndex])}
+                alt={`${selectedImageIndex + 1} of ${images.length}`}
+                className="max-h-[80vh] max-w-full object-contain"
+              />
+            )}
           </div>
           
           <button

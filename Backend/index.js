@@ -399,8 +399,8 @@ app.get("/api/images", async (req, res) => {
       });
     }
     
-    // Filter for common image file types
-    const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp']);
+    // Filter for common image and video file types so the API returns playable media (images + videos)
+    const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm', '.ogg', '.mov']);
     
     const images = response.Contents
       .filter(item => {
