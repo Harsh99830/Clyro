@@ -9,8 +9,38 @@ dotenv.config();
 
 const app = express();
 
-// Enable CORS for all routes
+// Enable CORS for all routes (use explicit header middleware as a fallback for some hosting providers)
 app.use(cors());
+
+// Fallback: explicitly set CORS headers for all responses. Some platforms/proxies may strip
+// the automatic headers added by the `cors` package, so this ensures the Access-Control-* headers
+// are always present. Configure allowed origins via `CORS_ALLOWED_ORIGINS` (comma-separated)
+// in production (or leave unset to allow all origins).
+app.use((req, res, next) => {
+  const allowedEnv = process.env.CORS_ALLOWED_ORIGINS || '*';
+  const allowedOrigins = allowedEnv === '*' ? ['*'] : allowedEnv.split(',').map(s => s.trim());
+  const origin = req.headers.origin;
+
+  if (!origin) {
+    // non-browser requests (curl, server-side) - allow
+    res.header('Access-Control-Allow-Origin', '*');
+  } else if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    // do not set the header if origin not allowed
+  }
+
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  // Respond to preflight requests quickly
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
 
 // Parse JSON bodies
 app.use(express.json());

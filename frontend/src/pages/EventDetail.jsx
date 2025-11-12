@@ -213,7 +213,7 @@ export default function EventDetail({ sidebarOpen, toggleSidebar }) {
                                   parent.innerHTML = '<img src="https://via.placeholder.com/400?text=Media+Not+Available" alt="Unavailable" class="w-full h-auto" />';
                                 }
                               }}
-                              style={{ maxHeight: '80vh' }}
+                              style={{ maxHeight: '360px', width: '100%', objectFit: 'cover', display: 'block' }}
                             />
 
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

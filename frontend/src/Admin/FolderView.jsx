@@ -370,9 +370,12 @@ const FolderView = () => {
                                     }
                                   }}
                                   style={{
-                                    maxHeight: '80vh',
+                                    maxHeight: '360px',
+                                    width: '100%',
+                                    objectFit: 'cover',
                                     border: selectedImages.has(index) ? '2px solid #3b82f6' : 'none',
-                                    borderRadius: selectedImages.has(index) ? '4px' : '0'
+                                    borderRadius: selectedImages.has(index) ? '4px' : '0',
+                                    display: 'block'
                                   }}
                                 />
 
