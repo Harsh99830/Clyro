@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser, useAuth } from '@clerk/clerk-react';
-import Sidebar from "../components/Sidebar";
 import FolderGrid from "../components/FolderGrid";
 import NewFolderModal from "../components/NewFolderModal";
 import { useNavigate } from "react-router-dom";
