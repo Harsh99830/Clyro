@@ -182,10 +182,31 @@ const FolderGrid = ({ onCardClick, isAdmin = false }) => {
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'transform 0.2s, box-shadow 0.2s',
+                borderRadius: 4,
+                overflow: 'hidden',
+                position: 'relative',
+                transformStyle: 'preserve-3d',
+                perspective: '1000px',
+                transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                '&:before': {
+                  content: '""',
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: 'inherit',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.6) 100%)',
+                  opacity: 0,
+                  transition: 'opacity 0.3s ease',
+                  zIndex: 1,
+                },
                 '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: 3,
+                  transform: 'translateY(-8px) rotateX(5deg) rotateY(5deg)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3), 0 10px 20px rgba(0,0,0,0.2)',
+                  '&:before': {
+                    opacity: 1,
+                  },
+                  '& .card-content': {
+                    transform: 'translateZ(20px)',
+                  },
                 },
               }}
               onClick={(e) => {
@@ -193,12 +214,16 @@ const FolderGrid = ({ onCardClick, isAdmin = false }) => {
                 handleFolderClick(folder);
               }}
             >
-              <Box sx={{
+              <Box className="card-content" sx={{
                 position: 'relative',
                 width: '300px',
                 height: '400px',
                 minHeight: '300px',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                borderTopLeftRadius: 4,
+                borderTopRightRadius: 4,
+                transformStyle: 'preserve-3d',
+                transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
               }}>
                 <CardMedia
                   component="img"
@@ -211,6 +236,8 @@ const FolderGrid = ({ onCardClick, isAdmin = false }) => {
                     position: 'absolute',
                     top: 0,
                     left: 0,
+                    borderTopLeftRadius: '16px',
+                    borderTopRightRadius: '16px',
                     transition: 'transform 0.5s ease-in-out',
                     '&:hover': {
                       transform: 'scale(1.05)'
@@ -229,7 +256,8 @@ const FolderGrid = ({ onCardClick, isAdmin = false }) => {
                   p: 1,
                   display: 'flex',
                   justifyContent: 'flex-end',
-                  zIndex: 3
+                  zIndex: 3,
+                  transform: 'translateZ(15px)'
                 }}>
                   {isAdmin && (
                     <IconButton 
@@ -253,9 +281,11 @@ const FolderGrid = ({ onCardClick, isAdmin = false }) => {
                   left: 0,
                   right: 0,
                   p: 2,
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)',
                   color: 'white',
-                  zIndex: 2
+                  zIndex: 2,
+                  backdropFilter: 'blur(4px)',
+                  transform: 'translateZ(10px)'
                 }}>
                 <Typography 
                   variant="subtitle1" 
