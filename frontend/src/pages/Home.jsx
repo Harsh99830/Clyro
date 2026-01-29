@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   FaBars, FaSearch, FaHome, FaPhotoVideo, 
-  FaCog, FaUser, FaSpinner, FaSignOutAlt,
-  FaGraduationCap
+  FaUser, FaSignOutAlt, FaGraduationCap
 } from "react-icons/fa";
 import { SignOutButton, useClerk } from "@clerk/clerk-react";
 import FolderGrid from '../components/FolderGrid';
@@ -27,7 +26,6 @@ function NavItem({ icon, label, active = false }) {
 }
 
 export default function Home({ sidebarOpen, toggleSidebar, onCardClick }) {
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { signOut } = useClerk();
 
   return (
@@ -55,9 +53,9 @@ export default function Home({ sidebarOpen, toggleSidebar, onCardClick }) {
 
           <nav className="flex-1 py-4">
             <ul className="space-y-1">
-              <NavItem icon={<FaHome />} label="Home" active />
-              <NavItem icon={<FaPhotoVideo />} label="Gallery" />
-              <NavItem icon={<FaUser />} label="Profile" />
+              <NavItem icon={<FaHome />} label="Home" active={false} />
+              <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} />
+              <NavItem icon={<FaUser />} label="Profile" active={false} />
             </ul>
           </nav>
 
@@ -103,7 +101,6 @@ export default function Home({ sidebarOpen, toggleSidebar, onCardClick }) {
         <main className="flex-1 overflow-y-auto p-8 lg:p-20 custom-scrollbar">
           <div className="max-w-[1400px] relative">
             
-            {/* Header Unit - Unified Single Line */}
             <header className="relative mb-24 flex items-end justify-between">
               <motion.div 
                 initial={{ opacity: 0, x: -20 }} 
@@ -118,13 +115,11 @@ export default function Home({ sidebarOpen, toggleSidebar, onCardClick }) {
                   <div className="h-[2px] w-32 bg-gradient-to-r from-white to-transparent" />
                 </div>
 
-                {/* Single line header */}
                 <h1 className="text-5xl lg:text-[100px] font-black tracking-[0.02em] leading-none uppercase whitespace-nowrap">
                   VISUAL <span className="text-transparent" style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.2)' }}>VAULT.</span>
                 </h1>
               </motion.div>
 
-              {/* Right Side Massive Hat */}
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -138,7 +133,6 @@ export default function Home({ sidebarOpen, toggleSidebar, onCardClick }) {
               </motion.div>
             </header>
 
-            {/* Folder Grid Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
