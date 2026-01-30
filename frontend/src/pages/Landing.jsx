@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react"; // Import Clerk Auth
 import { FaInstagram, FaLinkedinIn, FaCompass, FaCircle } from "react-icons/fa";
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { isSignedIn } = useAuth(); // Real-time auth check from Clerk
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -29,7 +31,6 @@ export default function Landing() {
       
       {/* --- 1. AMBIENT BACKGROUND ENGINE --- */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Glowing Orbs */}
         {[...Array(3)].map((_, i) => (
           <motion.div
             key={i}
@@ -44,7 +45,6 @@ export default function Landing() {
           />
         ))}
         
-        {/* Scanning Tech Line */}
         <motion.div 
           animate={{ y: ["0vh", "100vh"] }}
           transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
@@ -54,7 +54,6 @@ export default function Landing() {
 
       {/* --- 2. THE FRAME (HUD ELEMENTS) --- */}
       <div className="absolute inset-0 border-[20px] border-white/[0.02] pointer-events-none z-50">
-        {/* Vertical Data Ticker Left */}
         <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-8 opacity-20">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="rotate-90 text-[7px] tracking-[1em] uppercase font-bold">
@@ -83,9 +82,15 @@ export default function Landing() {
           </div>
         </div>
 
+        {/* --- DYNAMIC AUTH BUTTON --- */}
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-          <button className="px-10 py-3.5 bg-cyan-500/5 border border-cyan-500/20 rounded-full text-[10px] font-black tracking-[0.4em] uppercase hover:bg-cyan-500 hover:text-black transition-all duration-500 group overflow-hidden relative">
-            <span className="relative z-10">Join Now</span>
+          <button 
+            onClick={() => isSignedIn ? navigate("/home") : navigate("/sign-in")}
+            className="px-10 py-3.5 bg-cyan-500/5 border border-cyan-500/20 rounded-full text-[10px] font-black tracking-[0.4em] uppercase hover:bg-cyan-500 hover:text-black transition-all duration-500 group overflow-hidden relative"
+          >
+            <span className="relative z-10">
+              {isSignedIn ? "Explore Feed" : "Join Now"}
+            </span>
             <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
           </button>
         </motion.div>
@@ -122,6 +127,7 @@ export default function Landing() {
             </p>
           </motion.div>
 
+          {/* --- EXPLORE FEED BUTTON (Connected to /home) --- */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -175,7 +181,6 @@ export default function Landing() {
                 className="w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 scale-110 group-hover:scale-100"
                 alt={shard.label}
               />
-              {/* Stats Overlay */}
               <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-cyan-500/80 px-3 py-1 rounded-full">
                 <p className="text-[8px] font-black text-black">{shard.stats}</p>
               </div>

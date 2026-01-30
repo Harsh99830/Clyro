@@ -10,7 +10,6 @@ import FolderView from "./Admin/FolderView.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 import Landing from "./pages/Landing.jsx";
 
-// Admin Layout Component - Simplified as we moved the header to Admin/Home.jsx
 const AdminLayout = () => {
   return (
     <div className="min-h-screen bg-gray-100">
@@ -21,14 +20,12 @@ const AdminLayout = () => {
   );
 };
 
-// Protected Route Component for regular users
+// Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { isSignedIn } = useAuth();
-  
   if (!isSignedIn) {
     return <Navigate to="/sign-in" replace />;
   }
-  
   return children;
 };
 
@@ -53,7 +50,6 @@ function App() {
       if (window.innerWidth < 1024 && sidebarOpen) setSidebarOpen(false);
       else if (window.innerWidth >= 1024 && !sidebarOpen) setSidebarOpen(true);
     };
-  
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [sidebarOpen]);
@@ -61,8 +57,8 @@ function App() {
   const clerkTheme = {
     layout: { pageBackground: "#1f2937" },
     elements: {
-      formButtonPrimary: "bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-all",
-      formFieldInput: "border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+      formButtonPrimary: "bg-cyan-600 hover:bg-cyan-700 text-white rounded-md transition-all",
+      formFieldInput: "border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-cyan-500",
     },
   };
 
@@ -73,75 +69,59 @@ function App() {
   return (
     <AnimatePresence mode="wait">
       <div className="min-h-screen bg-gray-900">
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            {/* Admin Routes - Accessible without general sign in */}
-            <Route path="/admin/login" element={<AdminSignIn />} />
-            <Route path="/admin" element={
-              <AdminProtectedRoute>
-                <AdminLayout />
-              </AdminProtectedRoute>
-            }>
-              <Route index element={<Navigate to="/admin/home" replace />} />
-              <Route path="home" element={<AdminHome />} />
-              <Route path=":folderName" element={<FolderView />} />
-            </Route>
+        <Routes>
+          {/* 1. PUBLIC LANDING PAGE */}
+          <Route path="/" element={<Landing />} />
 
-            {/* Regular User Routes */}
-            <Route path="/sign-in/*" element={<SignIn routing="path" path="/sign-in" />} />
-            <Route path="/sign-up/*" element={<SignIn routing="path" path="/sign-up" />} />
-            
-            <Route element={
-              <>
-                <SignedIn>
-                  <Outlet />
-                </SignedIn>
-                <SignedOut>
-                  <motion.div
-                    key="signin"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="flex items-center justify-center min-h-screen"
-                  >
-                    <div className="flex items-center justify-center min-h-screen px-4">
-                      <div className="w-full max-w-md">
-                        <SignIn
-                          appearance={clerkTheme}
-                          afterSignInUrl="/"
-                          signUpUrl="/sign-up"
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
-                </SignedOut>
-              </>
-            }>
-              <Route
-                path="/"
-                element={
-                  <Home
-                    sidebarOpen={sidebarOpen}
-                    toggleSidebar={toggleSidebar}
-                    onCardClick={handleCardClick}
-                  />
-                }
-              />
-              <Route
-                path="/event/:eventId"
-                element={
-                  <EventDetail
-                    sidebarOpen={sidebarOpen}
-                    toggleSidebar={toggleSidebar}
-                  />
-                }
-              />
-            </Route>
+          {/* 2. ADMIN ROUTES */}
+          <Route path="/admin/login" element={<AdminSignIn />} />
+          <Route path="/admin" element={
+            <AdminProtectedRoute>
+              <AdminLayout />
+            </AdminProtectedRoute>
+          }>
+            <Route index element={<Navigate to="/admin/home" replace />} />
+            <Route path="home" element={<AdminHome />} />
+            <Route path=":folderName" element={<FolderView />} />
+          </Route>
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
+          {/* 3. AUTH ROUTES */}
+          <Route path="/sign-in/*" element={
+            <div className="flex items-center justify-center min-h-screen bg-[#020202]">
+               <SignIn routing="path" path="/sign-in" appearance={clerkTheme} afterSignInUrl="/home" signUpUrl="/sign-up" />
+            </div>
+          } />
+          <Route path="/sign-up/*" element={
+            <div className="flex items-center justify-center min-h-screen bg-[#020202]">
+               <SignIn routing="path" path="/sign-up" appearance={clerkTheme} afterSignInUrl="/home" />
+            </div>
+          } />
+
+          {/* 4. PUBLIC FEED ROUTES (Accessible without login as requested) */}
+          <Route
+            path="/home"
+            element={
+              <Home
+                sidebarOpen={sidebarOpen}
+                toggleSidebar={toggleSidebar}
+                onCardClick={handleCardClick}
+              />
+            }
+          />
+          <Route
+            path="/event/:eventId"
+            element={
+              <EventDetail
+                sidebarOpen={sidebarOpen}
+                toggleSidebar={toggleSidebar}
+              />
+            }
+          />
+
+          {/* 5. WILDCARD REDIRECT */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
     </AnimatePresence>
   );
 }
