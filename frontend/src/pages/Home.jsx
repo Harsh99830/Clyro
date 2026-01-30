@@ -5,7 +5,7 @@ import {
   FaSearch, FaHome, FaPhotoVideo, 
   FaUser, FaSignOutAlt, FaGraduationCap, FaTimes
 } from "react-icons/fa";
-import { SignOutButton, useClerk } from "@clerk/clerk-react";
+import { SignOutButton, useClerk, useUser } from "@clerk/clerk-react"; // Added useUser for the avatar
 import FolderGrid from '../components/FolderGrid';
 
 // --- SUB-COMPONENT: NavItem ---
@@ -45,7 +45,7 @@ function NavItem({ icon, label, active = false, mobile = false, onClick }) {
 
 export default function Home({ onCardClick }) {
   const navigate = useNavigate();
-  const { signOut } = useClerk();
+  const { user } = useUser(); // Get user data for the top avatar
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   return (
@@ -90,13 +90,14 @@ export default function Home({ onCardClick }) {
       {/* --- 3. DESKTOP SIDEBAR --- */}
       <aside className="hidden lg:flex w-72 h-full border-r border-white/5 flex-col bg-transparent z-40">
         <div className="h-32 flex items-center px-10">
-          <div className="text-2xl font-black tracking-tighter uppercase">CLYRO</div>
+          <div className="text-2xl font-black tracking-tighter uppercase cursor-pointer" onClick={() => navigate("/")}>CLYRO</div>
         </div>
         <nav className="flex-1 py-4">
           <ul className="space-y-1">
             <NavItem icon={<FaHome />} label="Home" active={false} onClick={() => navigate("/")} />
             <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} />
-            <NavItem icon={<FaUser />} label="Profile" active={false} />
+            {/* UPDATED: Profile Sidebar Link */}
+            <NavItem icon={<FaUser />} label="Profile" active={false} onClick={() => navigate("/profile")} />
           </ul>
         </nav>
         <div className="p-8">
@@ -111,11 +112,11 @@ export default function Home({ onCardClick }) {
 
       {/* --- 4. MAIN CONTENT --- */}
       <div className="flex-1 flex flex-col min-w-0 z-10 relative h-full">
-        {/* Navbar with Restored Desktop Search */}
+        {/* Navbar */}
         <nav className="h-20 lg:h-24 w-full border-b border-white/5 px-6 lg:px-12 flex items-center justify-between bg-[#030303]/40 backdrop-blur-md shrink-0">
-          <div className="text-xl font-black tracking-tighter uppercase">CLYRO</div>
+          <div className="text-xl font-black tracking-tighter uppercase lg:hidden">CLYRO</div>
 
-          {/* RESTORED SEARCH BAR FOR LAPTOP/DESKTOP */}
+          {/* Desktop Search */}
           <div className="flex-1 max-w-xl mx-8 relative group hidden lg:block">
             <div className="absolute inset-0 bg-white/[0.01] -skew-x-12 border border-white/5 group-focus-within:border-cyan-500/30 transition-all duration-500"></div>
             <div className="relative flex items-center px-6 py-2.5">
@@ -129,9 +130,17 @@ export default function Home({ onCardClick }) {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center bg-white/5">
-              <FaUser size={14} className="text-gray-500" />
-            </div>
+            {/* UPDATED: Top-Right Avatar Navigation */}
+            <button 
+              onClick={() => navigate("/profile")}
+              className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center bg-white/5 overflow-hidden hover:border-cyan-500/50 transition-colors"
+            >
+              {user?.imageUrl ? (
+                <img src={user.imageUrl} alt="Avatar" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" />
+              ) : (
+                <FaUser size={14} className="text-gray-500" />
+              )}
+            </button>
           </div>
         </nav>
 
@@ -163,10 +172,11 @@ export default function Home({ onCardClick }) {
 
         {/* --- MOBILE NAVIGATION DOCK --- */}
         <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] h-16 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-2xl z-[60] flex items-center justify-around px-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-           <NavItem icon={<FaHome />} label="Home" active={false} mobile={true} onClick={() => navigate("/")} />
+           <NavItem icon={<FaHome />} label="Home" active={false} mobile={true} onClick={() => navigate("/home")} />
            <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} mobile={true} />
            <NavItem icon={<FaSearch />} label="Search" active={false} mobile={true} onClick={() => setIsSearchOpen(true)} />
-           <NavItem icon={<FaUser />} label="Profile" active={false} mobile={true} />
+           {/* UPDATED: Profile Mobile Dock Link */}
+           <NavItem icon={<FaUser />} label="Profile" active={false} mobile={true} onClick={() => navigate("/profile")} />
         </div>
       </div>
 

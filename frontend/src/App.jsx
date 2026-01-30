@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, Outlet } from "react-router-dom";
-import { ClerkProvider, SignedIn, SignedOut, SignIn, useAuth } from "@clerk/clerk-react";
+import { ClerkProvider, SignedIn, SignedOut, SignIn, SignUp, useAuth } from "@clerk/clerk-react";
 import Home from "./pages/Home.jsx";
 import EventDetail from "./pages/EventDetail.jsx";
+import Profile from "./pages/Profile.jsx"; // Import your new Profile page
 import AdminSignIn from "./Admin/AdminSignIn.jsx";
 import AdminHome from "./Admin/Home.jsx";
 import AdminProtectedRoute from "./Admin/AdminProtectedRoute.jsx";
@@ -20,9 +21,12 @@ const AdminLayout = () => {
   );
 };
 
-// Protected Route Component
+// Protected Route Component for User Vault
 const ProtectedRoute = ({ children }) => {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
+  
+  if (!isLoaded) return null; // Wait for Clerk to load
+
   if (!isSignedIn) {
     return <Navigate to="/sign-in" replace />;
   }
@@ -55,10 +59,18 @@ function App() {
   }, [sidebarOpen]);
 
   const clerkTheme = {
-    layout: { pageBackground: "#1f2937" },
+    layout: { pageBackground: "#030303" },
     elements: {
-      formButtonPrimary: "bg-cyan-600 hover:bg-cyan-700 text-white rounded-md transition-all",
-      formFieldInput: "border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-cyan-500",
+      card: "bg-[#0a0a0a] border border-white/5 shadow-2xl",
+      headerTitle: "text-white uppercase tracking-tighter font-black",
+      headerSubtitle: "text-gray-500",
+      formButtonPrimary: "bg-cyan-500 hover:bg-cyan-600 text-black font-black uppercase tracking-widest text-[10px] py-3 rounded-none transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)]",
+      formFieldLabel: "text-[10px] font-black uppercase tracking-widest text-gray-400",
+      formFieldInput: "bg-white/[0.03] border-white/10 text-white rounded-none focus:ring-cyan-500 focus:border-cyan-500",
+      footerActionText: "text-gray-500",
+      footerActionLink: "text-cyan-500 hover:text-cyan-400 font-bold",
+      identityPreviewText: "text-white",
+      identityPreviewEditButtonIcon: "text-cyan-500"
     },
   };
 
@@ -68,7 +80,7 @@ function App() {
 
   return (
     <AnimatePresence mode="wait">
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-[#030303]">
         <Routes>
           {/* 1. PUBLIC LANDING PAGE */}
           <Route path="/" element={<Landing />} />
@@ -87,34 +99,46 @@ function App() {
 
           {/* 3. AUTH ROUTES */}
           <Route path="/sign-in/*" element={
-            <div className="flex items-center justify-center min-h-screen bg-[#020202]">
+            <div className="flex items-center justify-center min-h-screen bg-[#030303]">
                <SignIn routing="path" path="/sign-in" appearance={clerkTheme} afterSignInUrl="/home" signUpUrl="/sign-up" />
             </div>
           } />
           <Route path="/sign-up/*" element={
-            <div className="flex items-center justify-center min-h-screen bg-[#020202]">
-               <SignIn routing="path" path="/sign-up" appearance={clerkTheme} afterSignInUrl="/home" />
+            <div className="flex items-center justify-center min-h-screen bg-[#030303]">
+               <SignUp routing="path" path="/sign-up" appearance={clerkTheme} afterSignUpUrl="/home" signInUrl="/sign-in" />
             </div>
           } />
 
-          {/* 4. PUBLIC FEED ROUTES (Accessible without login as requested) */}
+          {/* 4. USER VAULT ROUTES (Now Protected) */}
           <Route
             path="/home"
             element={
-              <Home
-                sidebarOpen={sidebarOpen}
-                toggleSidebar={toggleSidebar}
-                onCardClick={handleCardClick}
-              />
+              <ProtectedRoute>
+                <Home
+                  sidebarOpen={sidebarOpen}
+                  toggleSidebar={toggleSidebar}
+                  onCardClick={handleCardClick}
+                />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/event/:eventId"
             element={
-              <EventDetail
-                sidebarOpen={sidebarOpen}
-                toggleSidebar={toggleSidebar}
-              />
+              <ProtectedRoute>
+                <EventDetail
+                  sidebarOpen={sidebarOpen}
+                  toggleSidebar={toggleSidebar}
+                />
+              </ProtectedRoute>
             }
           />
 
