@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@clerk/clerk-react"; // Import Clerk Auth
+import { useAuth } from "@clerk/clerk-react"; 
 import { FaInstagram, FaLinkedinIn, FaCompass, FaCircle } from "react-icons/fa";
 
 export default function Landing() {
   const navigate = useNavigate();
-  const { isSignedIn } = useAuth(); // Real-time auth check from Clerk
+  const { isSignedIn } = useAuth(); 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -52,8 +52,17 @@ export default function Landing() {
         />
       </div>
 
-      {/* --- 2. THE FRAME (HUD ELEMENTS) --- */}
-      <div className="absolute inset-0 border-[20px] border-white/[0.02] pointer-events-none z-50">
+      {/* --- 2. MOBILE TOP BAR --- */}
+      <div className="lg:hidden absolute top-0 left-0 w-full p-6 flex justify-between items-center z-50">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-ping" />
+            <span className="text-[10px] font-black tracking-[0.4em] uppercase text-cyan-500">Clyro_Live</span>
+          </div>
+          <span className="text-[8px] font-bold tracking-[0.2em] text-white/20 uppercase">Check it Out</span>
+      </div>
+
+      {/* --- 3. THE FRAME --- */}
+      <div className="absolute inset-0 border-[10px] lg:border-[20px] border-white/[0.02] pointer-events-none z-50">
         <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-8 opacity-20">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="rotate-90 text-[7px] tracking-[1em] uppercase font-bold">
@@ -63,18 +72,18 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* --- 3. TOP NAVIGATION --- */}
-      <div className="absolute top-0 left-0 w-full p-10 flex justify-between items-start z-50">
+      {/* --- 4. NAVIGATION --- */}
+      <div className="absolute bottom-0 top-auto lg:top-0 lg:bottom-auto left-0 w-full p-6 lg:p-10 flex flex-row justify-between items-center lg:items-start z-50 bg-[#020202]/90 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none border-t border-white/10 lg:border-none">
         <div className="flex gap-16 items-start">
           <div>
             <motion.h1 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-4xl font-black italic tracking-tighter uppercase leading-none"
+              className="text-3xl lg:text-4xl font-black italic tracking-tighter uppercase leading-none"
             >
               CLYRO<span className="text-cyan-500">.</span>
             </motion.h1>
-            <p className="text-[7px] tracking-[0.5em] text-white/30 uppercase mt-1">Social_Archive_v3</p>
+            <p className="text-[7px] tracking-[0.5em] text-white/30 uppercase mt-1">Campus_Feed</p>
           </div>
           <div className="hidden lg:block h-[1px] w-24 bg-white/10 mt-5" />
           <div className="hidden lg:block mt-2">
@@ -82,11 +91,10 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* --- DYNAMIC AUTH BUTTON --- */}
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
           <button 
             onClick={() => isSignedIn ? navigate("/home") : navigate("/sign-in")}
-            className="px-10 py-3.5 bg-cyan-500/5 border border-cyan-500/20 rounded-full text-[10px] font-black tracking-[0.4em] uppercase hover:bg-cyan-500 hover:text-black transition-all duration-500 group overflow-hidden relative"
+            className="px-8 lg:px-10 py-3 lg:py-3.5 bg-cyan-500/10 lg:bg-cyan-500/5 border border-cyan-500/20 rounded-full text-[9px] lg:text-[10px] font-black tracking-[0.4em] uppercase hover:bg-cyan-500 hover:text-black transition-all duration-500 group overflow-hidden relative"
           >
             <span className="relative z-10">
               {isSignedIn ? "Explore Feed" : "Join Now"}
@@ -96,19 +104,19 @@ export default function Landing() {
         </motion.div>
       </div>
 
-      {/* --- 4. KINETIC BACKGROUND TEXT --- */}
+      {/* --- 5. KINETIC BACKGROUND TEXT --- */}
       <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
         <motion.h1 
           animate={{ x: mousePos.x * -1, y: mousePos.y * -1 }}
           className="text-[25vw] font-black tracking-tighter leading-none italic text-transparent opacity-5"
           style={{ WebkitTextStroke: '1.5px white' }}
         >
-          NETWORK
+          CLYRO
         </motion.h1>
       </div>
 
-      {/* --- 5. THE CONTENT CORE --- */}
-      <div className="absolute inset-y-0 left-0 w-full lg:w-[45%] z-30 flex flex-col justify-center p-12 lg:p-24">
+      {/* --- 6. THE CONTENT CORE --- */}
+      <div className="absolute inset-y-0 left-0 w-full lg:w-[45%] z-30 flex flex-col justify-center p-10 lg:p-24 pb-36 lg:pb-24">
         <div className="relative">
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
@@ -119,33 +127,31 @@ export default function Landing() {
               <FaCircle className="text-cyan-500 animate-pulse" size={6} />
               <span className="text-[9px] tracking-[0.6em] text-white/30 uppercase font-bold">Clyro Network</span>
             </div>
-            <h2 className="text-7xl lg:text-[110px] font-black tracking-tighter uppercase leading-[0.8]">
+            <h2 className="text-6xl lg:text-[110px] font-black tracking-tighter uppercase leading-[0.8]">
               SOCIAL<br/><span className="text-cyan-500 font-light italic">EVOLUTION.</span>
             </h2>
-            <p className="max-w-sm text-[11px] tracking-[0.3em] uppercase text-white/40 leading-relaxed mt-8 border-l border-white/10 pl-6">
+            <p className="max-w-sm text-[10px] lg:text-[11px] tracking-[0.3em] uppercase text-white/40 leading-relaxed mt-8 border-l border-white/10 pl-6">
               A Place where students can share anything of an particular event which happening in their campus and connect with other students.
             </p>
           </motion.div>
 
-          {/* --- EXPLORE FEED BUTTON (Connected to /home) --- */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/home")}
-            className="mt-14 flex items-center gap-8 group"
+            className="mt-10 lg:mt-14 flex items-center gap-6 lg:gap-8 group"
           >
-            <div className="w-20 h-20 rounded-full border border-cyan-500/30 flex items-center justify-center group-hover:border-cyan-500 transition-all duration-500 relative">
-              <FaCompass size={28} className="group-hover:text-cyan-500 group-hover:rotate-[360deg] transition-all duration-700 text-white/80" />
-              <div className="absolute inset-[-4px] border border-cyan-500/10 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500" />
+            <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full border border-cyan-500/30 flex items-center justify-center group-hover:border-cyan-500 transition-all duration-500 relative">
+              <FaCompass size={24} className="lg:size-[28px] group-hover:text-cyan-500 group-hover:rotate-[360deg] transition-all duration-700 text-white/80" />
             </div>
             <div className="flex flex-col items-start text-left">
-              <span className="text-[12px] font-black tracking-[0.6em] uppercase">Explore Feed</span>
+              <span className="text-[11px] lg:text-[12px] font-black tracking-[0.6em] uppercase">Explore Feed</span>
               <span className="text-[8px] text-cyan-500/50 uppercase tracking-[0.2em] mt-1">See What's Going On...</span>
             </div>
           </motion.button>
         </div>
 
-        <div className="mt-16 flex gap-4 items-center">
+        <div className="mt-12 lg:mt-16 flex gap-4 items-center">
             <a href="#" className="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white hover:text-black transition-all duration-500">
                 <FaInstagram size={20} />
             </a>
@@ -157,8 +163,9 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* --- 6. FLOATING SOCIAL SHARDS --- */}
-      <div className="absolute inset-y-0 right-0 w-full lg:w-[55%] z-20 pointer-events-none lg:pointer-events-auto">
+      {/* --- 7. FLOATING SOCIAL SHARDS --- */}
+      {/* Target: Reduced opacity on mobile (opacity-10) and placed behind content (z-0) */}
+      <div className="absolute inset-y-0 right-0 w-full lg:w-[55%] z-0 lg:z-20 pointer-events-none lg:pointer-events-auto opacity-10 lg:opacity-100">
         <div className="relative w-full h-full">
           {shards.map((shard, i) => (
             <motion.div
@@ -181,9 +188,6 @@ export default function Landing() {
                 className="w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 scale-110 group-hover:scale-100"
                 alt={shard.label}
               />
-              <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-cyan-500/80 px-3 py-1 rounded-full">
-                <p className="text-[8px] font-black text-black">{shard.stats}</p>
-              </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
               <div className="absolute bottom-8 left-8">
                 <p className="text-[10px] font-black tracking-[0.5em] text-cyan-500 mb-2 uppercase">{shard.label}</p>
@@ -194,7 +198,7 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* --- 7. BOTTOM RIGHT STATUS --- */}
+      {/* --- 8. BOTTOM RIGHT STATUS --- */}
       <div className="absolute bottom-10 right-10 text-right hidden lg:block">
         <div className="flex flex-col gap-1 items-end">
           <div className="flex items-center gap-3">
