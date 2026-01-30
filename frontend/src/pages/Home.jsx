@@ -129,7 +129,7 @@ export default function Home({ sidebarOpen, toggleSidebar, onCardClick }) {
                 <div className="p-8 border border-white/10 rounded-[3rem] bg-white/[0.02] backdrop-blur-md">
                    <FaGraduationCap size={80} className="text-white opacity-90 shadow-2xl" />
                 </div>
-                <span className="text-[10px] font-black tracking-[0.8em] text-white/20 uppercase mr-4">Academic_</span>
+                <span className="text-[10px] font-black tracking-[0.8em] text-white/20 uppercase mr-4">Campus Diary</span>
               </motion.div>
             </header>
 

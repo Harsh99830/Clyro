@@ -8,6 +8,7 @@ import AdminHome from "./Admin/Home.jsx";
 import AdminProtectedRoute from "./Admin/AdminProtectedRoute.jsx";
 import FolderView from "./Admin/FolderView.jsx";
 import { motion, AnimatePresence } from "framer-motion";
+import Landing from "./pages/Landing.jsx";
 
 // Admin Layout Component - Simplified as we moved the header to Admin/Home.jsx
 const AdminLayout = () => {
@@ -73,6 +74,7 @@ function App() {
     <AnimatePresence mode="wait">
       <div className="min-h-screen bg-gray-900">
           <Routes>
+            <Route path="/" element={<Landing />} />
             {/* Admin Routes - Accessible without general sign in */}
             <Route path="/admin/login" element={<AdminSignIn />} />
             <Route path="/admin" element={
