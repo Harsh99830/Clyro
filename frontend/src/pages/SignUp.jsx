@@ -1,8 +1,20 @@
 import React from "react";
-import { SignUp } from "@clerk/clerk-react";
+import { SignUp, useUser } from "@clerk/clerk-react";
 import { dark } from "@clerk/themes";
+import { useNavigate } from "react-router-dom";
+import { saveUserToRealtimeDB } from "../utils/firebase.js";
 
 export default function SignUpPage() {
+  const navigate = useNavigate();
+  const { user } = useUser();
+
+  const handleAfterSignUp = async () => {
+    if (user) {
+      await saveUserToRealtimeDB(user);
+      navigate('/home');
+    }
+  };
+
   return (
     <div className="relative flex justify-center items-center h-screen bg-[#020202] overflow-hidden">
       
@@ -20,6 +32,7 @@ export default function SignUpPage() {
         <SignUp 
           path="/sign-up" 
           routing="path" 
+          afterSignUpUrl="/home"
           appearance={{
             baseTheme: dark,
             variables: {

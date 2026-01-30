@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, Outlet } from "react-router-dom";
-import { ClerkProvider, SignedIn, SignedOut, SignIn, SignUp, useAuth } from "@clerk/clerk-react";
+import { ClerkProvider, SignedIn, SignedOut, SignIn, SignUp, useAuth, useUser } from "@clerk/clerk-react";
 import Home from "./pages/Home.jsx";
 import EventDetail from "./pages/EventDetail.jsx";
 import Profile from "./pages/Profile.jsx"; // Import your new Profile page
@@ -10,6 +10,7 @@ import AdminProtectedRoute from "./Admin/AdminProtectedRoute.jsx";
 import FolderView from "./Admin/FolderView.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 import Landing from "./pages/Landing.jsx";
+import { saveUserToRealtimeDB } from "./utils/firebase.js";
 
 const AdminLayout = () => {
   return (
@@ -44,6 +45,14 @@ function AppWrapper() {
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024);
   const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
+  const { user } = useUser();
+
+  useEffect(() => {
+    if (isSignedIn && user) {
+      saveUserToRealtimeDB(user);
+    }
+  }, [isSignedIn, user]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
