@@ -16,7 +16,9 @@ export default function Landing() {
       setMousePos({ x, y });
     };
     window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeMouseMoveListener("mousemove", handleMouseMove);
+    
+    // FIX: Changed removeMouseMoveListener to removeEventListener
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
   const shards = [
@@ -72,9 +74,8 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* --- 4. NAVIGATION (UPDATED FOR MOBILE VISIBILITY) --- */}
-      {/* Changes: Added bottom-6, mx-4, and rounded-2xl for mobile view to lift it up */}
-      <div className="absolute bottom-6 lg:bottom-auto lg:top-0 left-0 right-0 lg:left-0 w-auto mx-4 lg:mx-0 lg:w-full p-6 lg:p-10 flex flex-row justify-between items-center lg:items-start z-50 bg-[#020202]/90 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none border border-white/10 lg:border-none rounded-2xl lg:rounded-none shadow-2xl lg:shadow-none">
+      {/* --- 4. NAVIGATION (FIXED MOBILE POSITIONING) --- */}
+      <div className="absolute bottom-8 lg:bottom-auto lg:top-0 left-0 right-0 lg:left-0 w-auto mx-4 lg:mx-0 lg:w-full p-6 lg:p-10 flex flex-row justify-between items-center lg:items-start z-50 bg-[#020202]/95 lg:bg-transparent backdrop-blur-2xl lg:backdrop-blur-none border border-white/10 lg:border-none rounded-2xl lg:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.8)] lg:shadow-none">
         <div className="flex gap-16 items-start">
           <div>
             <motion.h1 
