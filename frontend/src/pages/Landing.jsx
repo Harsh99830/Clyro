@@ -16,7 +16,7 @@ export default function Landing() {
       setMousePos({ x, y });
     };
     window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    return () => window.removeMouseMoveListener("mousemove", handleMouseMove);
   }, []);
 
   const shards = [
@@ -72,8 +72,9 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* --- 4. NAVIGATION --- */}
-      <div className="absolute bottom-0 top-auto lg:top-0 lg:bottom-auto left-0 w-full p-6 lg:p-10 flex flex-row justify-between items-center lg:items-start z-50 bg-[#020202]/90 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none border-t border-white/10 lg:border-none">
+      {/* --- 4. NAVIGATION (UPDATED FOR MOBILE VISIBILITY) --- */}
+      {/* Changes: Added bottom-6, mx-4, and rounded-2xl for mobile view to lift it up */}
+      <div className="absolute bottom-6 lg:bottom-auto lg:top-0 left-0 right-0 lg:left-0 w-auto mx-4 lg:mx-0 lg:w-full p-6 lg:p-10 flex flex-row justify-between items-center lg:items-start z-50 bg-[#020202]/90 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none border border-white/10 lg:border-none rounded-2xl lg:rounded-none shadow-2xl lg:shadow-none">
         <div className="flex gap-16 items-start">
           <div>
             <motion.h1 
@@ -87,14 +88,14 @@ export default function Landing() {
           </div>
           <div className="hidden lg:block h-[1px] w-24 bg-white/10 mt-5" />
           <div className="hidden lg:block mt-2">
-             <p className="text-[8px] tracking-[0.3em] text-white/20 uppercase font-bold">Clyro_Feed: Live</p>
+              <p className="text-[8px] tracking-[0.3em] text-white/20 uppercase font-bold">Clyro_Feed: Live</p>
           </div>
         </div>
 
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
           <button 
             onClick={() => isSignedIn ? navigate("/home") : navigate("/sign-in")}
-            className="px-8 lg:px-10 py-3 lg:py-3.5 bg-cyan-500/10 lg:bg-cyan-500/5 border border-cyan-500/20 rounded-full text-[9px] lg:text-[10px] font-black tracking-[0.4em] uppercase hover:bg-cyan-500 hover:text-black transition-all duration-500 group overflow-hidden relative"
+            className="px-6 lg:px-10 py-3 lg:py-3.5 bg-cyan-500/10 lg:bg-cyan-500/5 border border-cyan-500/20 rounded-full text-[9px] lg:text-[10px] font-black tracking-[0.4em] uppercase hover:bg-cyan-500 hover:text-black transition-all duration-500 group overflow-hidden relative"
           >
             <span className="relative z-10">
               {isSignedIn ? "Explore Feed" : "Join Now"}
@@ -116,7 +117,7 @@ export default function Landing() {
       </div>
 
       {/* --- 6. THE CONTENT CORE --- */}
-      <div className="absolute inset-y-0 left-0 w-full lg:w-[45%] z-30 flex flex-col justify-center p-10 lg:p-24 pb-36 lg:pb-24">
+      <div className="absolute inset-y-0 left-0 w-full lg:w-[45%] z-30 flex flex-col justify-center p-10 lg:p-24 pb-48 lg:pb-24">
         <div className="relative">
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
@@ -164,7 +165,6 @@ export default function Landing() {
       </div>
 
       {/* --- 7. FLOATING SOCIAL SHARDS --- */}
-      {/* Target: Reduced opacity on mobile (opacity-10) and placed behind content (z-0) */}
       <div className="absolute inset-y-0 right-0 w-full lg:w-[55%] z-0 lg:z-20 pointer-events-none lg:pointer-events-auto opacity-10 lg:opacity-100">
         <div className="relative w-full h-full">
           {shards.map((shard, i) => (
