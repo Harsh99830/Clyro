@@ -17,7 +17,6 @@ export default function Landing() {
     };
     window.addEventListener("mousemove", handleMouseMove);
     
-    // FIX: Changed removeMouseMoveListener to removeEventListener
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
@@ -74,7 +73,7 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* --- 4. NAVIGATION (FIXED MOBILE POSITIONING) --- */}
+      {/* --- 4. NAVIGATION --- */}
       <div className="absolute bottom-8 lg:bottom-auto lg:top-0 left-0 right-0 lg:left-0 w-auto mx-4 lg:mx-0 lg:w-full p-6 lg:p-10 flex flex-row justify-between items-center lg:items-start z-50 bg-[#020202]/95 lg:bg-transparent backdrop-blur-2xl lg:backdrop-blur-none border border-white/10 lg:border-none rounded-2xl lg:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.8)] lg:shadow-none">
         <div className="flex gap-16 items-start">
           <div>
@@ -93,16 +92,25 @@ export default function Landing() {
           </div>
         </div>
 
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex gap-4">
+          {/* UPDATED: Navigates to home regardless of sign-in status */}
           <button 
-            onClick={() => isSignedIn ? navigate("/home") : navigate("/sign-in")}
+            onClick={() => navigate("/home")}
             className="px-6 lg:px-10 py-3 lg:py-3.5 bg-cyan-500/10 lg:bg-cyan-500/5 border border-cyan-500/20 rounded-full text-[9px] lg:text-[10px] font-black tracking-[0.4em] uppercase hover:bg-cyan-500 hover:text-black transition-all duration-500 group overflow-hidden relative"
           >
-            <span className="relative z-10">
-              {isSignedIn ? "Explore Feed" : "Join Now"}
-            </span>
+            <span className="relative z-10">Explore Feed</span>
             <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
           </button>
+          
+          {/* OPTIONAL: Secondary "Join" button if not signed in */}
+          {!isSignedIn && (
+             <button 
+               onClick={() => navigate("/sign-in")}
+               className="hidden lg:block px-6 py-3.5 bg-white text-black rounded-full text-[10px] font-black tracking-[0.4em] uppercase hover:bg-cyan-500 transition-all duration-500"
+             >
+               Join Now
+             </button>
+          )}
         </motion.div>
       </div>
 
@@ -137,6 +145,7 @@ export default function Landing() {
             </p>
           </motion.div>
 
+          {/* UPDATED: Navigates to home directly */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

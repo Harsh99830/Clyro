@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
   FaSearch, FaHome, FaPhotoVideo, 
-  FaUser, FaSignOutAlt, FaGraduationCap, FaTimes
+  FaUser, FaSignOutAlt, FaGraduationCap, FaTimes, FaSignInAlt
 } from "react-icons/fa";
-import { SignOutButton, useClerk, useUser } from "@clerk/clerk-react"; // Added useUser for the avatar
+import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react"; 
 import FolderGrid from '../components/FolderGrid';
 
 // --- SUB-COMPONENT: NavItem ---
@@ -45,7 +45,8 @@ function NavItem({ icon, label, active = false, mobile = false, onClick }) {
 
 export default function Home({ onCardClick }) {
   const navigate = useNavigate();
-  const { user } = useUser(); // Get user data for the top avatar
+  const { isSignedIn } = useAuth(); // Check auth status
+  const { user } = useUser(); 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   return (
@@ -94,19 +95,35 @@ export default function Home({ onCardClick }) {
         </div>
         <nav className="flex-1 py-4">
           <ul className="space-y-1">
-            <NavItem icon={<FaHome />} label="Home" active={false} onClick={() => navigate("/")} />
+            <NavItem icon={<FaHome />} label="Landing" active={false} onClick={() => navigate("/")} />
             <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} />
-            {/* UPDATED: Profile Sidebar Link */}
-            <NavItem icon={<FaUser />} label="Profile" active={false} onClick={() => navigate("/profile")} />
+            
+            {/* UPDATED: Profile Sidebar Link changes to Join Now if signed out */}
+            <NavItem 
+              icon={isSignedIn ? <FaUser /> : <FaSignInAlt className="text-cyan-500"/>} 
+              label={isSignedIn ? "Profile" : "Join Now"} 
+              active={false} 
+              onClick={() => navigate(isSignedIn ? "/profile" : "/sign-in")} 
+            />
           </ul>
         </nav>
         <div className="p-8">
-          <SignOutButton redirectUrl="/">
-            <div className="flex items-center gap-4 text-gray-700 hover:text-red-500 cursor-pointer transition-colors">
-              <FaSignOutAlt size={14} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Logout</span>
+          {isSignedIn ? (
+            <SignOutButton redirectUrl="/">
+              <div className="flex items-center gap-4 text-gray-700 hover:text-red-500 cursor-pointer transition-colors">
+                <FaSignOutAlt size={14} />
+                <span className="text-[10px] font-black uppercase tracking-widest">Logout</span>
+              </div>
+            </SignOutButton>
+          ) : (
+            <div 
+              onClick={() => navigate("/sign-in")}
+              className="flex items-center gap-4 text-cyan-500 hover:text-white cursor-pointer transition-colors"
+            >
+              <FaSignInAlt size={14} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Sign In</span>
             </div>
-          </SignOutButton>
+          )}
         </div>
       </aside>
 
@@ -130,17 +147,26 @@ export default function Home({ onCardClick }) {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* UPDATED: Top-Right Avatar Navigation */}
-            <button 
-              onClick={() => navigate("/profile")}
-              className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center bg-white/5 overflow-hidden hover:border-cyan-500/50 transition-colors"
-            >
-              {user?.imageUrl ? (
-                <img src={user.imageUrl} alt="Avatar" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" />
-              ) : (
-                <FaUser size={14} className="text-gray-500" />
-              )}
-            </button>
+            {/* UPDATED: Avatar area changes to button if signed out */}
+            {isSignedIn ? (
+              <button 
+                onClick={() => navigate("/profile")}
+                className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center bg-white/5 overflow-hidden hover:border-cyan-500/50 transition-colors"
+              >
+                {user?.imageUrl ? (
+                  <img src={user.imageUrl} alt="Avatar" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" />
+                ) : (
+                  <FaUser size={14} className="text-gray-500" />
+                )}
+              </button>
+            ) : (
+              <button 
+                onClick={() => navigate("/sign-in")}
+                className="px-5 py-2 border-l-2 border-cyan-500 bg-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500 hover:text-black transition-all"
+              >
+                Join Now
+              </button>
+            )}
           </div>
         </nav>
 
@@ -175,8 +201,15 @@ export default function Home({ onCardClick }) {
            <NavItem icon={<FaHome />} label="Home" active={false} mobile={true} onClick={() => navigate("/home")} />
            <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} mobile={true} />
            <NavItem icon={<FaSearch />} label="Search" active={false} mobile={true} onClick={() => setIsSearchOpen(true)} />
-           {/* UPDATED: Profile Mobile Dock Link */}
-           <NavItem icon={<FaUser />} label="Profile" active={false} mobile={true} onClick={() => navigate("/profile")} />
+           
+           {/* UPDATED: Profile Mobile Dock Link changes to Join Now */}
+           <NavItem 
+              icon={isSignedIn ? <FaUser /> : <FaSignInAlt className="text-cyan-500"/>} 
+              label={isSignedIn ? "Profile" : "Join"} 
+              active={false} 
+              mobile={true} 
+              onClick={() => navigate(isSignedIn ? "/profile" : "/sign-in")} 
+            />
         </div>
       </div>
 

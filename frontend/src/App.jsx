@@ -60,14 +60,13 @@ function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, [sidebarOpen]);
 
-  // --- UPDATED CLERK THEME FOR WHITE BG / BLACK TEXT ---
   const clerkTheme = {
     variables: {
-      colorBackground: "#ffffff", // White background for the card
-      colorText: "#000000",       // Black text for the main body
-      colorInputBackground: "#f4f4f5", // Light grey inputs
+      colorBackground: "#ffffff",
+      colorText: "#000000",
+      colorInputBackground: "#f4f4f5",
       colorInputText: "#000000",
-      colorPrimary: "#000000",    // Primary buttons in black
+      colorPrimary: "#000000",
     },
     elements: {
       card: "bg-white border border-black/10 shadow-xl rounded-none",
@@ -105,7 +104,6 @@ function App() {
             <Route path=":folderName" element={<FolderView />} />
           </Route>
 
-          {/* 3. AUTH ROUTES (PAGE BACKGROUND SET TO WHITE) */}
           <Route path="/sign-in/*" element={
             <div className="flex items-center justify-center min-h-screen bg-white">
                <SignIn routing="path" path="/sign-in" appearance={clerkTheme} afterSignInUrl="/home" signUpUrl="/sign-up" />
@@ -117,11 +115,12 @@ function App() {
             </div>
           } />
 
+          {/* --- UPDATED: Home is now PUBLIC --- */}
           <Route path="/home" element={
-            <ProtectedRoute>
-              <Home sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} onCardClick={handleCardClick} />
-            </ProtectedRoute>
+            <Home sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} onCardClick={handleCardClick} />
           } />
+
+          {/* --- Profile and Events remain PROTECTED --- */}
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
