@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate, Outlet }
 import { ClerkProvider, SignedIn, SignedOut, SignIn, SignUp, useAuth, useUser } from "@clerk/clerk-react";
 import Home from "./pages/Home.jsx";
 import EventDetail from "./pages/EventDetail.jsx";
-import Profile from "./pages/Profile.jsx"; // Import your new Profile page
+import Profile from "./pages/Profile.jsx";
 import AdminSignIn from "./Admin/AdminSignIn.jsx";
 import AdminHome from "./Admin/Home.jsx";
 import AdminProtectedRoute from "./Admin/AdminProtectedRoute.jsx";
@@ -22,15 +22,10 @@ const AdminLayout = () => {
   );
 };
 
-// Protected Route Component for User Vault
 const ProtectedRoute = ({ children }) => {
   const { isSignedIn, isLoaded } = useAuth();
-  
-  if (!isLoaded) return null; // Wait for Clerk to load
-
-  if (!isSignedIn) {
-    return <Navigate to="/sign-in" replace />;
-  }
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Navigate to="/sign-in" replace />;
   return children;
 };
 
@@ -54,9 +49,7 @@ function App() {
     }
   }, [isSignedIn, user]);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   useEffect(() => {
     const handleResize = () => {
@@ -67,19 +60,28 @@ function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, [sidebarOpen]);
 
+  // --- UPDATED CLERK THEME FOR WHITE BG / BLACK TEXT ---
   const clerkTheme = {
-    layout: { pageBackground: "#030303" },
+    variables: {
+      colorBackground: "#ffffff", // White background for the card
+      colorText: "#000000",       // Black text for the main body
+      colorInputBackground: "#f4f4f5", // Light grey inputs
+      colorInputText: "#000000",
+      colorPrimary: "#000000",    // Primary buttons in black
+    },
     elements: {
-      card: "bg-[#0a0a0a] border border-white/5 shadow-2xl",
-      headerTitle: "text-white uppercase tracking-tighter font-black",
-      headerSubtitle: "text-gray-500",
-      formButtonPrimary: "bg-cyan-500 hover:bg-cyan-600 text-black font-black uppercase tracking-widest text-[10px] py-3 rounded-none transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)]",
-      formFieldLabel: "text-[10px] font-black uppercase tracking-widest text-gray-400",
-      formFieldInput: "bg-white/[0.03] border-white/10 text-white rounded-none focus:ring-cyan-500 focus:border-cyan-500",
-      footerActionText: "text-gray-500",
-      footerActionLink: "text-cyan-500 hover:text-cyan-400 font-bold",
-      identityPreviewText: "text-white",
-      identityPreviewEditButtonIcon: "text-cyan-500"
+      card: "bg-white border border-black/10 shadow-xl rounded-none",
+      headerTitle: "text-black uppercase tracking-tighter font-black",
+      headerSubtitle: "text-gray-600",
+      formButtonPrimary: "bg-black hover:bg-gray-800 text-white font-black uppercase tracking-widest text-[10px] py-4 rounded-none transition-all",
+      formFieldLabel: "text-[10px] font-black uppercase tracking-widest text-black mb-1",
+      formFieldInput: "bg-white border border-black/20 text-black rounded-none h-12 px-4 focus:ring-1 focus:ring-black focus:border-black transition-all",
+      footerActionText: "text-gray-600",
+      footerActionLink: "text-black hover:underline font-black",
+      dividerLine: "bg-black/10",
+      dividerText: "text-black text-[10px] uppercase font-bold",
+      socialButtonsBlockButton: "bg-white border border-black/10 hover:bg-gray-50 transition-all",
+      socialButtonsBlockButtonText: "text-black font-bold",
     },
   };
 
@@ -91,10 +93,7 @@ function App() {
     <AnimatePresence mode="wait">
       <div className="min-h-screen bg-[#030303]">
         <Routes>
-          {/* 1. PUBLIC LANDING PAGE */}
           <Route path="/" element={<Landing />} />
-
-          {/* 2. ADMIN ROUTES */}
           <Route path="/admin/login" element={<AdminSignIn />} />
           <Route path="/admin" element={
             <AdminProtectedRoute>
@@ -106,52 +105,34 @@ function App() {
             <Route path=":folderName" element={<FolderView />} />
           </Route>
 
-          {/* 3. AUTH ROUTES */}
+          {/* 3. AUTH ROUTES (PAGE BACKGROUND SET TO WHITE) */}
           <Route path="/sign-in/*" element={
-            <div className="flex items-center justify-center min-h-screen bg-[#030303]">
+            <div className="flex items-center justify-center min-h-screen bg-white">
                <SignIn routing="path" path="/sign-in" appearance={clerkTheme} afterSignInUrl="/home" signUpUrl="/sign-up" />
             </div>
           } />
           <Route path="/sign-up/*" element={
-            <div className="flex items-center justify-center min-h-screen bg-[#030303]">
+            <div className="flex items-center justify-center min-h-screen bg-white">
                <SignUp routing="path" path="/sign-up" appearance={clerkTheme} afterSignUpUrl="/home" signInUrl="/sign-in" />
             </div>
           } />
 
-          {/* 4. USER VAULT ROUTES (Now Protected) */}
-          <Route
-            path="/home"
-            element={
-              <ProtectedRoute>
-                <Home
-                  sidebarOpen={sidebarOpen}
-                  toggleSidebar={toggleSidebar}
-                  onCardClick={handleCardClick}
-                />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/event/:eventId"
-            element={
-              <ProtectedRoute>
-                <EventDetail
-                  sidebarOpen={sidebarOpen}
-                  toggleSidebar={toggleSidebar}
-                />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/home" element={
+            <ProtectedRoute>
+              <Home sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} onCardClick={handleCardClick} />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/event/:eventId" element={
+            <ProtectedRoute>
+              <EventDetail sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+            </ProtectedRoute>
+          } />
 
-          {/* 5. WILDCARD REDIRECT */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
