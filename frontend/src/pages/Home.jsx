@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
   FaSearch, FaHome, FaPhotoVideo, 
-  FaUser, FaSignOutAlt, FaGraduationCap, FaTimes, FaSignInAlt
+  FaUser, FaSignOutAlt, FaGraduationCap, FaTimes, FaSignInAlt,
+  FaCloudUploadAlt // Added Upload Icon
 } from "react-icons/fa";
 import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react"; 
 import FolderGrid from '../components/FolderGrid';
@@ -45,7 +46,7 @@ function NavItem({ icon, label, active = false, mobile = false, onClick }) {
 
 export default function Home({ onCardClick }) {
   const navigate = useNavigate();
-  const { isSignedIn } = useAuth(); // Check auth status
+  const { isSignedIn } = useAuth(); 
   const { user } = useUser(); 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
@@ -98,7 +99,14 @@ export default function Home({ onCardClick }) {
             <NavItem icon={<FaHome />} label="Landing" active={false} onClick={() => navigate("/")} />
             <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} />
             
-            {/* UPDATED: Profile Sidebar Link changes to Join Now if signed out */}
+            {/* NEW: Desktop Upload Button */}
+            <NavItem 
+              icon={<FaCloudUploadAlt />} 
+              label="Upload" 
+              active={false} 
+              onClick={() => navigate(isSignedIn ? "/upload" : "/sign-in")} 
+            />
+
             <NavItem 
               icon={isSignedIn ? <FaUser /> : <FaSignInAlt className="text-cyan-500"/>} 
               label={isSignedIn ? "Profile" : "Join Now"} 
@@ -133,7 +141,6 @@ export default function Home({ onCardClick }) {
         <nav className="h-20 lg:h-24 w-full border-b border-white/5 px-6 lg:px-12 flex items-center justify-between bg-[#030303]/40 backdrop-blur-md shrink-0">
           <div className="text-xl font-black tracking-tighter uppercase lg:hidden">CLYRO</div>
 
-          {/* Desktop Search */}
           <div className="flex-1 max-w-xl mx-8 relative group hidden lg:block">
             <div className="absolute inset-0 bg-white/[0.01] -skew-x-12 border border-white/5 group-focus-within:border-cyan-500/30 transition-all duration-500"></div>
             <div className="relative flex items-center px-6 py-2.5">
@@ -147,7 +154,6 @@ export default function Home({ onCardClick }) {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* UPDATED: Avatar area changes to button if signed out */}
             {isSignedIn ? (
               <button 
                 onClick={() => navigate("/profile")}
@@ -200,9 +206,18 @@ export default function Home({ onCardClick }) {
         <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] h-16 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-2xl z-[60] flex items-center justify-around px-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
            <NavItem icon={<FaHome />} label="Home" active={false} mobile={true} onClick={() => navigate("/home")} />
            <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} mobile={true} />
+           
+           {/* NEW: Mobile Upload Button */}
+           <NavItem 
+             icon={<FaCloudUploadAlt className="text-cyan-400" />} 
+             label="Upload" 
+             active={false} 
+             mobile={true} 
+             onClick={() => navigate(isSignedIn ? "/upload" : "/sign-in")} 
+           />
+
            <NavItem icon={<FaSearch />} label="Search" active={false} mobile={true} onClick={() => setIsSearchOpen(true)} />
            
-           {/* UPDATED: Profile Mobile Dock Link changes to Join Now */}
            <NavItem 
               icon={isSignedIn ? <FaUser /> : <FaSignInAlt className="text-cyan-500"/>} 
               label={isSignedIn ? "Profile" : "Join"} 
