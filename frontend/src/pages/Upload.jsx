@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   FaHome, FaPhotoVideo, FaUser, FaCloudUploadAlt, 
@@ -39,27 +39,10 @@ export default function Upload() {
   const [files, setFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [step, setStep] = useState(1); 
-  const [folders, setFolders] = useState([]);
-  const [selectedFolder, setSelectedFolder] = useState(null);
-
-  // --- FETCH FOLDERS FROM CLOUDFLARE ---
-  useEffect(() => {
-    const fetchFolders = async () => {
-      try {
-        // Replace with your actual Cloudflare Worker URL
-        const response = await fetch("https://your-worker-url.workers.dev/api/folders");
-        const data = await response.json();
-        
-        // Ensure data is mapped correctly based on your Cloudflare response structure
-        setFolders(data || []);
-      } catch (error) {
-        console.error("FAILED TO SYNC WITH CLOUDFLARE:", error);
-      }
-    };
-
-    fetchFolders();
-  }, []);
+  
+  // Get folder name from URL params
+  const { eventId } = useParams();
+  const folderName = eventId || 'default';
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -70,33 +53,53 @@ export default function Upload() {
     setFiles(files.filter((_, i) => i !== index));
   };
 
-  const startUploadProcess = () => {
-    if (files.length > 0) setStep(2);
-  };
-
-  // --- FINALIZE UPLOAD TO CLOUDFLARE ---
-  const finalizeUpload = async (folder) => {
-    setSelectedFolder(folder);
+  // --- DIRECT UPLOAD TO FOLDER ---
+  const handleUpload = async () => {
+    if (files.length === 0) return;
+    
     setIsUploading(true);
 
-    // This is where you would normally do an actual POST to Cloudflare R2/D1
-    // For now, keeping the simulation so the UI looks great
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 5;
-      setUploadProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsUploading(false);
-          setFiles([]);
-          setUploadProgress(0);
-          setStep(1);
-          setSelectedFolder(null);
-          alert(`ASSETS DEPLOYED TO [${folder.name.toUpperCase()}] IN CLOUDFLARE`);
-        }, 500);
+    try {
+      const formData = new FormData();
+      formData.append('folder', folderName);
+      
+      files.forEach(file => {
+        formData.append('file', file);
+      });
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upload files');
       }
-    }, 100);
+
+      // Simulate progress for UI
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        setUploadProgress(progress);
+        if (progress >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            setIsUploading(false);
+            setFiles([]);
+            setUploadProgress(0);
+            alert(`ASSETS DEPLOYED TO [${folderName.toUpperCase()}] IN CLOUDFLARE`);
+          }, 500);
+        }
+      }, 100);
+
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      alert(`UPLOAD FAILED: ${error.message}`);
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   return (
@@ -128,99 +131,67 @@ export default function Upload() {
         <div className="flex-1 overflow-y-auto p-6 lg:p-20 custom-scrollbar pb-32">
           <div className="max-w-4xl mx-auto">
             
-            <header className="mb-12 flex justify-between items-end">
+            <header className="mb-12">
               <div>
                 <h1 className="text-4xl lg:text-6xl font-black uppercase tracking-tighter">
-                  {step === 1 ? "INITIALIZE" : "SELECT"}{" "}
-                  <span className="text-cyan-500">{step === 1 ? "UPLOAD_" : "DESTINATION_"}</span>
+                  UPLOAD TO{" "}
+                  <span className="text-cyan-500">{folderName.toUpperCase()}</span>
                 </h1>
                 <p className="text-gray-500 text-[10px] font-bold tracking-[0.3em] uppercase mt-2">
-                  {step === 1 ? "// Status: Ready for Input" : `// Targets: ${folders.length} Found in Cloudflare`}
+                  // Status: Ready for Input | Files: {files.length}
                 </p>
               </div>
-              {step === 2 && !isUploading && (
-                <button onClick={() => setStep(1)} className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 hover:text-white transition-colors">
-                  <FaArrowLeft /> Back
-                </button>
-              )}
             </header>
 
-            <AnimatePresence mode="wait">
-              {step === 1 ? (
-                <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                  <div className="relative group">
-                    <input type="file" multiple onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
-                    <div className="border-2 border-dashed border-white/10 rounded-3xl p-12 lg:p-24 flex flex-col items-center justify-center gap-6 bg-white/[0.01] group-hover:bg-cyan-500/[0.02] group-hover:border-cyan-500/30 transition-all duration-500">
-                      <FaFileImport size={32} className="text-cyan-500" />
-                      <div className="text-center">
-                        <p className="text-xs font-black uppercase tracking-widest">Transmit Assets</p>
-                        <p className="text-[10px] text-gray-600 uppercase mt-1 tracking-widest">Total Selection: {files.length}</p>
-                      </div>
-                    </div>
+            <div className="space-y-12">
+              <div className="relative group">
+                <input type="file" multiple onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
+                <div className="border-2 border-dashed border-white/10 rounded-3xl p-12 lg:p-24 flex flex-col items-center justify-center gap-6 bg-white/[0.01] group-hover:bg-cyan-500/[0.02] group-hover:border-cyan-500/30 transition-all duration-500">
+                  <FaFileImport size={32} className="text-cyan-500" />
+                  <div className="text-center">
+                    <p className="text-xs font-black uppercase tracking-widest">Select Media Files</p>
+                    <p className="text-[10px] text-gray-600 uppercase mt-1 tracking-widest">Total Selection: {files.length}</p>
                   </div>
+                </div>
+              </div>
 
-                  {files.length > 0 && (
-                    <div className="mt-12 space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                        {files.map((file, i) => (
-                          <div key={i} className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
-                            <span className="text-[10px] font-bold truncate text-gray-400 uppercase">{file.name}</span>
-                            <button onClick={() => removeFile(i)} className="text-gray-600 hover:text-white"><FaTimes size={12} /></button>
-                          </div>
-                        ))}
+              {files.length > 0 && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                    {files.map((file, i) => (
+                      <div key={i} className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
+                        <span className="text-[10px] font-bold truncate text-gray-400 uppercase">{file.name}</span>
+                        <button onClick={() => removeFile(i)} className="text-gray-600 hover:text-white"><FaTimes size={12} /></button>
                       </div>
-                      <button onClick={startUploadProcess} className="w-full py-6 bg-cyan-500 text-black font-black uppercase tracking-[0.5em] text-xs rounded-2xl shadow-[0_0_30px_rgba(34,211,238,0.2)]">
-                        LOCATE TARGET CARD
-                      </button>
-                    </div>
-                  )}
-                </motion.div>
-              ) : (
-                <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {folders.map((folder) => (
-                      <button
-                        key={folder.id}
-                        disabled={isUploading}
-                        onClick={() => finalizeUpload(folder)}
-                        className={`group p-6 rounded-2xl border transition-all duration-500 text-left flex items-center gap-5 ${
-                          selectedFolder?.id === folder.id 
-                          ? 'bg-cyan-500 border-cyan-500 text-black' 
-                          : 'bg-white/5 border-white/10 hover:border-cyan-500/50 hover:bg-white/[0.07]'
-                        }`}
-                      >
-                        <div className={`p-4 rounded-xl ${selectedFolder?.id === folder.id ? 'bg-black/20' : 'bg-white/5 group-hover:text-cyan-500 transition-colors'}`}>
-                          <FaFolderOpen size={20} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-black uppercase tracking-widest">{folder.name}</p>
-                          <p className={`text-[8px] font-bold uppercase tracking-tighter ${selectedFolder?.id === folder.id ? 'text-black/60' : 'text-gray-500'}`}>
-                            {folder.eventDate || 'Remote Storage'}
-                          </p>
-                        </div>
-                      </button>
                     ))}
                   </div>
-
-                  {isUploading && (
-                    <div className="mt-12 p-10 bg-white/5 border border-white/5 rounded-3xl relative overflow-hidden">
-                      <div className="relative z-10 flex flex-col items-center gap-4">
-                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                          <motion.div 
-                            className="h-full bg-cyan-500 shadow-[0_0_15px_#22d3ee]" 
-                            initial={{ width: 0 }} 
-                            animate={{ width: `${uploadProgress}%` }} 
-                          />
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-cyan-500 animate-pulse">
-                          STREAMING TO CLOUDFLARE: {selectedFolder?.name.toUpperCase()}... {uploadProgress}%
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
+                  <button 
+                    onClick={handleUpload}
+                    disabled={isUploading}
+                    className="w-full py-6 bg-cyan-500 text-black font-black uppercase tracking-[0.5em] text-xs rounded-2xl shadow-[0_0_30px_rgba(34,211,238,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUploading ? 'UPLOADING...' : 'UPLOAD TO CLOUDFLARE'}
+                  </button>
+                </div>
               )}
-            </AnimatePresence>
+
+              {isUploading && (
+                <div className="p-10 bg-white/5 border border-white/5 rounded-3xl relative overflow-hidden">
+                  <div className="relative z-10 flex flex-col items-center gap-4">
+                    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                      <motion.div 
+                        className="h-full bg-cyan-500 shadow-[0_0_15px_#22d3ee]" 
+                        initial={{ width: 0 }} 
+                        animate={{ width: `${uploadProgress}%` }} 
+                      />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-cyan-500 animate-pulse">
+                      STREAMING TO CLOUDFLARE: {folderName.toUpperCase()}... {uploadProgress}%
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>

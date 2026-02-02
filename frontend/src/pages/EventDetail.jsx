@@ -7,7 +7,8 @@ import {
   FaHome, FaPhotoVideo, FaUser, FaArrowLeft,
   FaCloudUploadAlt, FaSignInAlt, FaSignOutAlt
 } from "react-icons/fa";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, IconButton } from "@mui/material";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react"; 
 
 // --- SUB-COMPONENT: NavItem (Sidebar & Mobile Dock) ---
@@ -70,6 +71,14 @@ export default function EventDetail() {
     }
   };
 
+  const handleUploadClick = () => {
+    if (isSignedIn) {
+      navigate(`/event/${eventId}/upload`);
+    } else {
+      navigate('/sign-in');
+    }
+  };
+
   useEffect(() => {
     const fetchImages = async () => {
       try {
@@ -119,7 +128,7 @@ export default function EventDetail() {
               icon={<FaCloudUploadAlt />} 
               label="Upload" 
               active={false} 
-              onClick={() => navigate(isSignedIn ? "/upload" : "/sign-in")} 
+              onClick={handleUploadClick}
             />
 
             <NavItem 
@@ -243,7 +252,7 @@ export default function EventDetail() {
              label="Upload" 
              active={false} 
              mobile={true} 
-             onClick={() => navigate(isSignedIn ? "/upload" : "/sign-in")} 
+             onClick={handleUploadClick}
            />
 
           <NavItem icon={<FaUser />} label="Profile" active={false} mobile={true} onClick={() => navigate("/profile")} />

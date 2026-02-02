@@ -131,15 +131,15 @@ function App() {
             </ProtectedRoute>
           } />
 
-          <Route path="/upload" element={
-            <ProtectedRoute>
-              <Upload />
-            </ProtectedRoute>
-          } />
-
           <Route path="/event/:eventId" element={
             <ProtectedRoute>
               <EventDetail sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/event/:eventId/upload" element={
+            <ProtectedRoute>
+              <Upload />
             </ProtectedRoute>
           } />
 
