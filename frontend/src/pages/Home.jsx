@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
   FaSearch, FaHome, FaPhotoVideo, 
-  FaUser, FaSignOutAlt, FaGraduationCap, FaTimes, FaSignInAlt,
-  FaCloudUploadAlt 
+  FaUser, FaSignOutAlt, FaGraduationCap, FaTimes, FaSignInAlt
 } from "react-icons/fa";
 import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react"; 
 import FolderGrid from '../components/FolderGrid';
@@ -99,14 +98,6 @@ export default function Home({ onCardClick }) {
             <NavItem icon={<FaHome />} label="Landing" active={false} onClick={() => navigate("/")} />
             <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} onClick={() => navigate("/home")} />
             
-            {/* Desktop Upload Button Integrated */}
-            <NavItem 
-              icon={<FaCloudUploadAlt />} 
-              label="Upload" 
-              active={false} 
-              onClick={() => navigate(isSignedIn ? "/upload" : "/sign-in")} 
-            />
-
             <NavItem 
               icon={isSignedIn ? <FaUser /> : <FaSignInAlt className="text-cyan-500"/>} 
               label={isSignedIn ? "Profile" : "Join Now"} 
@@ -207,15 +198,6 @@ export default function Home({ onCardClick }) {
            <NavItem icon={<FaHome />} label="Home" active={false} mobile={true} onClick={() => navigate("/")} />
            <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} mobile={true} onClick={() => navigate("/home")} />
            
-           {/* Mobile Upload Button Integrated */}
-           <NavItem 
-             icon={<FaCloudUploadAlt />} 
-             label="Upload" 
-             active={false} 
-             mobile={true} 
-             onClick={() => navigate(isSignedIn ? "/upload" : "/sign-in")} 
-           />
-
            <NavItem icon={<FaSearch />} label="Search" active={false} mobile={true} onClick={() => setIsSearchOpen(true)} />
            
            <NavItem 

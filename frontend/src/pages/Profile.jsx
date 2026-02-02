@@ -4,11 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { 
   FaUser, FaHome, FaPhotoVideo, FaSearch, 
   FaCog, FaShieldAlt, FaHistory, FaGraduationCap,
-  FaSignOutAlt, FaSignInAlt, FaCloudUploadAlt
+  FaSignOutAlt, FaSignInAlt
 } from "react-icons/fa";
 import { useUser, useAuth, SignOutButton } from "@clerk/clerk-react";
 
-// --- SUB-COMPONENT: NavItem (Integrated from Home.jsx) ---
+// --- SUB-COMPONENT: NavItem ---
 function NavItem({ icon, label, active = false, mobile = false, onClick }) {
   if (mobile) {
     return (
@@ -65,7 +65,7 @@ export default function Profile() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:40px_40px] lg:bg-[size:80px_80px]"></div>
       </div>
 
-      {/* --- 2. DESKTOP SIDEBAR (Matched from Home.jsx) --- */}
+      {/* --- 2. DESKTOP SIDEBAR --- */}
       <aside className="hidden lg:flex w-72 h-full border-r border-white/5 flex-col bg-transparent z-40">
         <div className="h-32 flex items-center px-10">
           <div className="text-2xl font-black tracking-tighter uppercase cursor-pointer" onClick={() => navigate("/")}>CLYRO</div>
@@ -73,15 +73,8 @@ export default function Profile() {
         <nav className="flex-1 py-4">
           <ul className="space-y-1">
             <NavItem icon={<FaHome />} label="Landing" active={false} onClick={() => navigate("/")} />
-            <NavItem icon={<FaPhotoVideo />} label="Gallery" active={false} onClick={() => navigate("/gallery")} />
+            <NavItem icon={<FaPhotoVideo />} label="Gallery" active={false} onClick={() => navigate("/home")} />
             
-            <NavItem 
-              icon={<FaCloudUploadAlt />} 
-              label="Upload" 
-              active={false} 
-              onClick={() => navigate(isSignedIn ? "/upload" : "/sign-in")} 
-            />
-
             <NavItem 
               icon={isSignedIn ? <FaUser /> : <FaSignInAlt className="text-cyan-500"/>} 
               label={isSignedIn ? "Profile" : "Join Now"} 
@@ -114,7 +107,6 @@ export default function Profile() {
       <main className="flex-1 overflow-y-auto p-6 lg:p-20 relative z-10 custom-scrollbar pb-32">
         <div className="max-w-4xl mx-auto">
           
-          {/* PROFILE HEADER */}
           <header className="mb-12 flex flex-col items-center lg:items-start gap-8">
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }}
@@ -144,7 +136,6 @@ export default function Profile() {
             </div>
           </header>
 
-          {/* STATS GRID */}
           <div className="grid grid-cols-3 gap-4 mb-12">
             {stats.map((stat, i) => (
               <div key={i} className="bg-white/[0.02] border border-white/5 p-4 rounded-xl text-center">
@@ -154,7 +145,6 @@ export default function Profile() {
             ))}
           </div>
 
-          {/* SETTINGS AREA */}
           <section className="space-y-4">
             <h2 className="text-[10px] font-black tracking-[0.3em] uppercase text-white/30 mb-6">System Control</h2>
             
@@ -190,20 +180,11 @@ export default function Profile() {
         </div>
       </main>
 
-      {/* --- 4. MOBILE NAVIGATION DOCK (Matched from Home.jsx) --- */}
+      {/* --- 4. MOBILE NAVIGATION DOCK --- */}
       <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] h-16 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-2xl z-[60] flex items-center justify-around px-2 shadow-2xl">
          <NavItem icon={<FaHome />} label="Home" active={false} mobile={true} onClick={() => navigate("/")} />
-         <NavItem icon={<FaPhotoVideo />} label="Gallery" active={false} mobile={true} onClick={() => navigate("/gallery")} />
-         
-         <NavItem 
-           icon={<FaCloudUploadAlt className="text-cyan-400" />} 
-           label="Upload" 
-           active={false} 
-           mobile={true} 
-           onClick={() => navigate(isSignedIn ? "/upload" : "/sign-in")} 
-         />
-
-         <NavItem icon={<FaSearch />} label="Search" active={false} mobile={true} onClick={() => navigate("/gallery")} />
+         <NavItem icon={<FaPhotoVideo />} label="Gallery" active={false} mobile={true} onClick={() => navigate("/home")} />
+         <NavItem icon={<FaSearch />} label="Search" active={false} mobile={true} onClick={() => navigate("/home")} />
          <NavItem icon={<FaUser />} label="Profile" active={true} mobile={true} />
       </div>
 
