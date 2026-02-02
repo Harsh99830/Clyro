@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   FaSearch, FaHome, FaPhotoVideo, 
   FaUser, FaSignOutAlt, FaGraduationCap, FaTimes, FaSignInAlt,
-  FaCloudUploadAlt // Added Upload Icon
+  FaCloudUploadAlt 
 } from "react-icons/fa";
 import { SignOutButton, useAuth, useUser } from "@clerk/clerk-react"; 
 import FolderGrid from '../components/FolderGrid';
@@ -97,9 +97,9 @@ export default function Home({ onCardClick }) {
         <nav className="flex-1 py-4">
           <ul className="space-y-1">
             <NavItem icon={<FaHome />} label="Landing" active={false} onClick={() => navigate("/")} />
-            <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} />
+            <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} onClick={() => navigate("/home")} />
             
-            {/* NEW: Desktop Upload Button */}
+            {/* Desktop Upload Button Integrated */}
             <NavItem 
               icon={<FaCloudUploadAlt />} 
               label="Upload" 
@@ -139,7 +139,7 @@ export default function Home({ onCardClick }) {
       <div className="flex-1 flex flex-col min-w-0 z-10 relative h-full">
         {/* Navbar */}
         <nav className="h-20 lg:h-24 w-full border-b border-white/5 px-6 lg:px-12 flex items-center justify-between bg-[#030303]/40 backdrop-blur-md shrink-0">
-          <div className="text-xl font-black tracking-tighter uppercase lg:hidden">CLYRO</div>
+          <div className="text-xl font-black tracking-tighter uppercase lg:hidden" onClick={() => navigate("/")}>CLYRO</div>
 
           <div className="flex-1 max-w-xl mx-8 relative group hidden lg:block">
             <div className="absolute inset-0 bg-white/[0.01] -skew-x-12 border border-white/5 group-focus-within:border-cyan-500/30 transition-all duration-500"></div>
@@ -204,12 +204,12 @@ export default function Home({ onCardClick }) {
 
         {/* --- MOBILE NAVIGATION DOCK --- */}
         <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] h-16 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-2xl z-[60] flex items-center justify-around px-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-           <NavItem icon={<FaHome />} label="Home" active={false} mobile={true} onClick={() => navigate("/home")} />
-           <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} mobile={true} />
+           <NavItem icon={<FaHome />} label="Home" active={false} mobile={true} onClick={() => navigate("/")} />
+           <NavItem icon={<FaPhotoVideo />} label="Gallery" active={true} mobile={true} onClick={() => navigate("/home")} />
            
-           {/* NEW: Mobile Upload Button */}
+           {/* Mobile Upload Button Integrated */}
            <NavItem 
-             icon={<FaCloudUploadAlt className="text-cyan-400" />} 
+             icon={<FaCloudUploadAlt />} 
              label="Upload" 
              active={false} 
              mobile={true} 

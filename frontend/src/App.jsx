@@ -4,6 +4,7 @@ import { ClerkProvider, SignedIn, SignedOut, SignIn, SignUp, useAuth, useUser } 
 import Home from "./pages/Home.jsx";
 import EventDetail from "./pages/EventDetail.jsx";
 import Profile from "./pages/Profile.jsx";
+import Upload from "./pages/Upload.jsx"; // Imported the new Upload page
 import AdminSignIn from "./Admin/AdminSignIn.jsx";
 import AdminHome from "./Admin/Home.jsx";
 import AdminProtectedRoute from "./Admin/AdminProtectedRoute.jsx";
@@ -93,6 +94,8 @@ function App() {
       <div className="min-h-screen bg-[#030303]">
         <Routes>
           <Route path="/" element={<Landing />} />
+          
+          {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminSignIn />} />
           <Route path="/admin" element={
             <AdminProtectedRoute>
@@ -104,6 +107,7 @@ function App() {
             <Route path=":folderName" element={<FolderView />} />
           </Route>
 
+          {/* Auth Routes */}
           <Route path="/sign-in/*" element={
             <div className="flex items-center justify-center min-h-screen bg-white">
                <SignIn routing="path" path="/sign-in" appearance={clerkTheme} afterSignInUrl="/home" signUpUrl="/sign-up" />
@@ -115,17 +119,24 @@ function App() {
             </div>
           } />
 
-          {/* --- UPDATED: Home is now PUBLIC --- */}
+          {/* Public Gallery Home */}
           <Route path="/home" element={
             <Home sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} onCardClick={handleCardClick} />
           } />
 
-          {/* --- Profile and Events remain PROTECTED --- */}
+          {/* Protected User Routes */}
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
             </ProtectedRoute>
           } />
+
+          <Route path="/upload" element={
+            <ProtectedRoute>
+              <Upload />
+            </ProtectedRoute>
+          } />
+
           <Route path="/event/:eventId" element={
             <ProtectedRoute>
               <EventDetail sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
